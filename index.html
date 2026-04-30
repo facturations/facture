@@ -57,22 +57,35 @@
         .preview-actions { background: white; padding: 15px 25px; border-radius: 8px; display: flex; gap: 15px; margin-bottom: 30px; position: sticky; top: 20px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 
         /* =========================================
-           A4 PDF TEMPLATE - REPRODUCTION EXACTE
+           A4 PDF TEMPLATE - DESIGN PREMIUM ET ÉPURÉ (Gris)
            ========================================= */
         .a4-document {
             width: 210mm; min-height: 297mm; background: #ffffff; padding: 20mm 20mm; margin: 0 auto;
             font-family: 'Arial', Helvetica, sans-serif; color: #000000; box-sizing: border-box; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        .pdf-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-        .pdf-boxes-container { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .pdf-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
+        .pdf-boxes-container { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .pdf-box-wrapper { width: 48%; }
-        .pdf-box-title { font-weight: bold; font-size: 10pt; margin-bottom: 5px; text-decoration: underline; }
-        .pdf-box { border: 1pt solid #000; padding: 10px; min-height: 80px; font-size: 10pt; line-height: 1.4; }
-        .pdf-table-new { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .pdf-table-new th, .pdf-table-new td { border: 1pt solid #000; padding: 8px 10px; font-size: 10pt; }
-        .pdf-table-new th { font-weight: bold; text-align: center; }
-        .pdf-table-totals td { font-weight: bold; }
-        .pdf-footer-new { position: absolute; bottom: 15mm; left: 15mm; right: 15mm; text-align: center; font-size: 8pt; line-height: 1.4; color: #000080;}
+        .pdf-box-title { font-weight: bold; font-size: 10pt; margin-bottom: 8px; text-decoration: underline; color: #1e293b; }
+        
+        /* BORDURES GRISES POUR LES BOITES */
+        .pdf-box { border: 1.5pt solid #94a3b8; padding: 12px; min-height: 85px; font-size: 10pt; line-height: 1.5; color: #0f172a; border-radius: 4px; }
+        
+        .pdf-table-new { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        
+        /* BORDURES GRISES POUR LE TABLEAU */
+        .pdf-table-new th, .pdf-table-new td { border: 1.5pt solid #94a3b8; padding: 10px 12px; font-size: 10pt; }
+        
+        .pdf-table-new th { font-weight: bold; text-align: center; background: #f8fafc; color: #1e293b; }
+        .pdf-table-totals td { font-weight: bold; color: #0f172a; }
+        
+        /* Footer Gris, très compact sur 2 lignes */
+        .pdf-footer-new { 
+            position: absolute; bottom: 10mm; left: 15mm; right: 15mm; text-align: center; 
+            font-size: 8pt; line-height: 1.4; color: #64748b; 
+            border-top: 1.5pt solid #cbd5e1; 
+            padding-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -166,18 +179,18 @@
                 <input type="hidden" id="pay-facture-id">
                 <div class="grid" style="margin-top:15px;">
                     <div><label>Montant (MAD)</label><input type="number" id="pay-montant" step="0.01"></div>
-                    <div><label>Date</label><input type="date" id="pay-date"></div>
-                    <div><label>Mode</label>
+                    <div><label>Date du paiement</label><input type="date" id="pay-date"></div>
+                    <div><label>Mode de paiement</label>
                         <select id="pay-mode"><option value="Virement">Virement</option><option value="Chèque">Chèque</option><option value="Espèces">Espèces</option></select>
                     </div>
-                    <div><label>Référence</label><input type="text" id="pay-ref"></div>
+                    <div><label>Référence (N° Chèque...)</label><input type="text" id="pay-ref"></div>
                 </div>
                 <div style="margin-top:15px;">
-                    <button class="btn btn-success" onclick="savePayment()">Valider</button>
+                    <button class="btn btn-success" onclick="savePayment()">Valider le paiement</button>
                     <button class="btn btn-outline" onclick="document.getElementById('pay-form').style.display='none'">Annuler</button>
                 </div>
             </div>
-            <div class="card"><table class="ui-table"><thead><tr><th>Facture</th><th>Date</th><th>Mode</th><th>Référence</th><th>Montant</th><th>Actions</th></tr></thead><tbody id="paiements-list"></tbody></table></div>
+            <div class="card"><table class="ui-table"><thead><tr><th>Facture liée</th><th>Date</th><th>Mode</th><th>Référence</th><th>Montant</th><th>Actions</th></tr></thead><tbody id="paiements-list"></tbody></table></div>
         </div>
 
         <div id="settings" class="section">
@@ -205,21 +218,24 @@
                     </div>
                 </div>
 
-                <h3 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">Informations légales</h3>
+                <h3 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">Informations légales (Pied de page)</h3>
                 <div class="grid">
                     <div><label>Nom Société</label><input type="text" id="s-nom" value="EPT, SARL"></div>
                     <div><label>Téléphone / Fax</label><input type="text" id="s-tel" value="Tél: 0524438768"></div>
                 </div>
                 <div class="form-group" style="margin-bottom: 15px;"><label>Adresse de l'émetteur</label><input type="text" id="s-adresse" value="QUARTIER MASSAR, 1050 bureau n 2, MARRAKECH"></div>
+                <div class="form-group" style="margin-bottom: 15px;"><label>Email</label><input type="text" id="s-email" value="direction@ept.com"></div>
                 
                 <div class="grid">
                     <div><label>RC</label><input type="text" id="s-rc" value="86179"></div>
                     <div><label>IF</label><input type="text" id="s-if" value="25023231"></div>
+                    <div><label>AF</label><input type="text" id="s-af" value="5785863"></div>
                     <div><label>ICE</label><input type="text" id="s-ice" value="00263100/1000054"></div>
-                    <div><label>CNSS</label><input type="text" id="s-cnss"></div>
+                    <div><label>CNSS (Optionnel)</label><input type="text" id="s-cnss"></div>
                 </div>
+                
                 <div style="text-align: right; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Enregistrer</button>
+                    <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Enregistrer dans Supabase</button>
                 </div>
             </div>
         </div>
@@ -229,13 +245,13 @@
             <input type="hidden" id="doc-type">
             <div class="card">
                 <div class="grid">
-                    <div><label>Client</label><select id="doc-client"></select></div>
+                    <div><label>Sélectionner le Client (*)</label><select id="doc-client"></select></div>
                     <div><label>N° Pièce</label><input type="text" id="doc-ref"></div>
                     <div><label>Date</label><input type="date" id="doc-date"></div>
                 </div>
                 <h3 style="margin-top:30px;">Prestations</h3>
                 <table class="ui-table">
-                    <thead><tr><th style="width:55%;">Désignation</th><th style="width:15%;">Qté</th><th style="width:20%;">Prix U.</th><th></th></tr></thead>
+                    <thead><tr><th style="width:55%;">Désignation</th><th style="width:15%;">Qté</th><th style="width:20%;">Prix U. (MAD)</th><th></th></tr></thead>
                     <tbody id="doc-lines"></tbody>
                 </table>
                 <button class="btn btn-outline" style="margin-top:10px;" onclick="addDocLine()"><i class="fas fa-plus"></i> Ajouter ligne</button>
@@ -249,8 +265,8 @@
                     </div>
                 </div>
                 <div style="text-align:right; margin-top:20px;">
-                    <button class="btn btn-outline" onclick="cancelDoc()">Annuler</button>
-                    <button class="btn btn-success" onclick="saveDocument()"><i class="fas fa-save"></i> Enregistrer</button>
+                    <button class="btn btn-outline" onclick="nav(document.getElementById('doc-type').value === 'devis' ? 'devis' : 'factures')">Annuler</button>
+                    <button class="btn btn-success" onclick="saveDocument()"><i class="fas fa-save"></i> Enregistrer le document</button>
                 </div>
             </div>
         </div>
@@ -275,37 +291,77 @@
     <div id="pdf-modal" class="modal-overlay">
         <div class="preview-actions">
             <button class="btn btn-outline" onclick="document.getElementById('pdf-modal').style.display='none'"><i class="fas fa-times"></i> Fermer</button>
-            <button class="btn btn-primary" onclick="downloadPDF()"><i class="fas fa-download"></i> Télécharger PDF</button>
+            <button class="btn btn-primary" onclick="downloadPDF()"><i class="fas fa-download"></i> Télécharger la facture en PDF</button>
         </div>
         
         <div id="pdf-export" class="a4-document">
+            
             <div class="pdf-header-top">
-                <div style="text-align: center; width: 250px;"><img id="p-logo" src="" style="max-width: 100%; max-height: 80px; margin-bottom: 5px; display:none;"></div>
-                <div style="text-align: right; font-family: 'Arial', sans-serif; font-size: 10pt; font-weight: bold; padding-top: 10px;">
-                    <span id="p-type-label">Facture</span> N° : <span id="p-ref"></span><br>Date : <span id="p-date-text"></span>
+                <div style="text-align: left; width: 280px;">
+                    <img id="p-logo" src="" style="max-width: 100%; max-height: 90px; margin-bottom: 5px; display:none;">
+                </div>
+                <div style="text-align: right; font-family: 'Arial', sans-serif;">
+                    <h1 id="p-main-title" style="margin: 0 0 10px 0; font-size: 26pt; color: #0f172a; text-transform: uppercase; letter-spacing: 2px;">FACTURE</h1>
+                    <div style="font-size: 11pt; color: #334155; font-weight: bold; margin-bottom: 3px;">N° : <span id="p-ref"></span></div>
+                    <div style="font-size: 11pt; color: #334155;">Date : <span id="p-date-text"></span></div>
                 </div>
             </div>
+
             <div class="pdf-boxes-container">
-                <div class="pdf-box-wrapper"><div class="pdf-box-title">Emetteur</div><div class="pdf-box"><strong id="p-f-name"></strong><br><span id="p-f-address"></span></div></div>
-                <div class="pdf-box-wrapper"><div class="pdf-box-title">A l'intention de :</div><div class="pdf-box"><strong id="p-client" style="text-transform: uppercase;"></strong><br><span id="p-client-details" style="white-space: pre-wrap;"></span></div></div>
+                <div class="pdf-box-wrapper">
+                    <div class="pdf-box-title">Émetteur</div>
+                    <div class="pdf-box">
+                        <strong id="p-f-name"></strong><br>
+                        <span id="p-f-address"></span>
+                    </div>
+                </div>
+                <div class="pdf-box-wrapper">
+                    <div class="pdf-box-title">À l'attention de :</div>
+                    <div class="pdf-box">
+                        <strong id="p-client" style="text-transform: uppercase;"></strong><br>
+                        <span id="p-client-details" style="white-space: pre-wrap;"></span>
+                    </div>
+                </div>
             </div>
+
             <table class="pdf-table-new">
-                <thead><tr><th style="width: 50%; text-align: left;">Désignation</th><th style="width: 20%; text-align: center;">Prix Unitaire</th><th style="width: 10%; text-align: center;">Qté</th><th style="width: 20%; text-align: right;">Total H.T</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th style="width: 50%; text-align: left;">Désignation</th>
+                        <th style="width: 20%; text-align: center;">Prix Unitaire</th>
+                        <th style="width: 10%; text-align: center;">Qté</th>
+                        <th style="width: 20%; text-align: right;">Total H.T</th>
+                    </tr>
+                </thead>
                 <tbody id="p-items"></tbody>
                 <tbody class="pdf-table-totals">
                     <tr><td colspan="3" style="text-align: right; padding-right: 20px;">Total H.T</td><td style="text-align: right;" id="p-tht"></td></tr>
                     <tr><td colspan="3" style="text-align: right; padding-right: 20px;">TVA <span id="p-tva-rate"></span>%</td><td style="text-align: right;" id="p-tva"></td></tr>
-                    <tr><td colspan="3" style="text-align: right; padding-right: 20px;">Total TTC</td><td style="text-align: right;" id="p-tttc"></td></tr>
+                    <tr><td colspan="3" style="text-align: right; padding-right: 20px;">Total TTC</td><td style="text-align: right; font-size: 11pt;" id="p-tttc"></td></tr>
                 </tbody>
             </table>
-            <div style="font-family: 'Arial', sans-serif; font-size: 10pt; line-height: 1.5; margin-top: 15px;">
-                <div id="p-lettres" style="font-weight: bold; margin-bottom: 20px;"></div>
-                <div style="text-align: center; margin-top: 20px;"><img id="p-cachet" src="" style="max-width: 250px; max-height: 120px; object-fit: contain; display:none;"></div>
+
+            <div style="font-family: 'Arial', sans-serif; font-size: 11pt; line-height: 1.6; margin-top: 25px; padding: 15px; background: #f8fafc; border-left: 3px solid #94a3b8;">
+                <span id="p-lettres"></span>
             </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 30px; padding-right: 20px;">
+                <img id="p-cachet" src="" style="max-width: 300px; max-height: 160px; object-fit: contain; display:none;">
+            </div>
+
             <div class="pdf-footer-new">
-                <strong id="p-foot-name"></strong> <span id="p-foot-address"></span><br>
-                RC: <span id="p-foot-rc"></span> IF: <span id="p-foot-if"></span> <span id="p-foot-cnss-container" style="display:none;">CNSS: <span id="p-foot-cnss"></span></span> ICE: <span id="p-foot-ice"></span><br>
-                <span id="p-foot-phone"></span>
+                <div style="margin-bottom: 4px;">
+                    <strong id="p-foot-name" style="font-size: 9pt; color: #1e293b;"></strong> - 
+                    <span id="p-foot-address"></span> - 
+                    <strong>Email:</strong> <span id="p-foot-email"></span>
+                </div>
+                <div>
+                    <strong>RC:</strong> <span id="p-foot-rc"></span> &nbsp;|&nbsp; 
+                    <strong>IF:</strong> <span id="p-foot-if"></span> &nbsp;|&nbsp; 
+                    <strong>AF:</strong> <span id="p-foot-af"></span> &nbsp;|&nbsp; 
+                    <span id="p-foot-cnss-container" style="display:none;"><strong>CNSS:</strong> <span id="p-foot-cnss"></span> &nbsp;|&nbsp; </span>
+                    <strong>ICE:</strong> <span id="p-foot-ice"></span>
+                </div>
             </div>
         </div>
     </div>
@@ -328,8 +384,6 @@
         }
 
         let companySettings = {};
-
-        // Variables globales pour la facturation partielle
         let currentDevisToInvoice = null;
         let currentDevisLinesToInvoice = [];
 
@@ -438,11 +492,16 @@
         async function loadSettings() {
             const { data, error } = await supabaseClient.from('parametres_societe').select('*').single();
             if(error && error.code !== 'PGRST116') throw error; 
+            
+            const savedAf = localStorage.getItem('ept_af') || '5785863';
+            document.getElementById('s-af').value = savedAf;
+
             if(data) {
                 companySettings = data;
                 document.getElementById('s-nom').value = data.nom || ''; document.getElementById('s-tel').value = data.telephone || '';
                 document.getElementById('s-adresse').value = data.adresse || ''; document.getElementById('s-rc').value = data.rc || '';
                 document.getElementById('s-if').value = data.if_tax || ''; document.getElementById('s-ice').value = data.ice || ''; document.getElementById('s-cnss').value = data.cnss || '';
+                document.getElementById('s-email').value = data.email || '';
                 if(data.logo_base64) { document.getElementById('s-logo-preview').src = data.logo_base64; document.getElementById('s-logo-preview').style.display='block'; }
                 if(data.cachet_base64) { document.getElementById('s-cachet-preview').src = data.cachet_base64; document.getElementById('s-cachet-preview').style.display='block'; }
             }
@@ -455,7 +514,9 @@
 
         window.saveSettings = async function() {
             try {
-                const updates = { nom: document.getElementById('s-nom').value, telephone: document.getElementById('s-tel').value, adresse: document.getElementById('s-adresse').value, rc: document.getElementById('s-rc').value, if_tax: document.getElementById('s-if').value, ice: document.getElementById('s-ice').value, cnss: document.getElementById('s-cnss').value };
+                localStorage.setItem('ept_af', document.getElementById('s-af').value);
+
+                const updates = { nom: document.getElementById('s-nom').value, email: document.getElementById('s-email').value, telephone: document.getElementById('s-tel').value, adresse: document.getElementById('s-adresse').value, rc: document.getElementById('s-rc').value, if_tax: document.getElementById('s-if').value, ice: document.getElementById('s-ice').value, cnss: document.getElementById('s-cnss').value };
                 const lImg = document.getElementById('s-logo-preview').src; if(lImg && lImg.startsWith('data:')) updates.logo_base64 = lImg;
                 const cImg = document.getElementById('s-cachet-preview').src; if(cImg && cImg.startsWith('data:')) updates.cachet_base64 = cImg;
 
@@ -731,7 +792,7 @@
             document.getElementById('kpi-ca').innerText = formatMoney(caPer) + ' MAD'; document.getElementById('kpi-encaisse').innerText = formatMoney(enc) + ' MAD'; document.getElementById('kpi-retard').innerText = formatMoney(ret) + ' MAD';
         }
 
-        // ================= PDF =================
+        // ================= PDF (Pied de page strict sur 2 lignes) =================
         window.openPDF = async function(id, type) {
             try {
                 await loadSettings();
@@ -744,8 +805,10 @@
                 if(companySettings.logo_base64) { document.getElementById('p-logo').src = companySettings.logo_base64; document.getElementById('p-logo').style.display = 'inline-block'; } else { document.getElementById('p-logo').style.display = 'none'; }
                 if(companySettings.cachet_base64) { document.getElementById('p-cachet').src = companySettings.cachet_base64; document.getElementById('p-cachet').style.display = 'inline-block'; } else { document.getElementById('p-cachet').style.display = 'none'; }
 
-                document.getElementById('p-type-label').innerText = type === 'devis' ? 'Devis' : 'Facture';
-                document.getElementById('p-ref').innerText = doc.ref; document.getElementById('p-date-text').innerText = (type==='devis'?doc.date_devis:doc.date_facture).split('-').reverse().join('/');
+                // Mise à jour du Titre
+                document.getElementById('p-main-title').innerText = type === 'devis' ? 'DEVIS' : 'FACTURE';
+                document.getElementById('p-ref').innerText = doc.ref; 
+                document.getElementById('p-date-text').innerText = (type==='devis'?doc.date_devis:doc.date_facture).split('-').reverse().join('/');
 
                 document.getElementById('p-f-name').innerText = companySettings.nom; document.getElementById('p-f-address').innerText = companySettings.adresse;
                 document.getElementById('p-client').innerText = doc.clients.nom; document.getElementById('p-client-details').innerText = doc.clients.adresse || '';
@@ -754,12 +817,21 @@
                 lines.forEach(l => { tBody += `<tr><td>${l.designation.replace(/\n/g, '<br>')}</td><td style="text-align:center;">${formatMoney(l.prix_unitaire)}</td><td style="text-align:center;">${l.quantite}</td><td style="text-align:right;">${formatMoney(l.quantite*l.prix_unitaire)}</td></tr>`; });
                 document.getElementById('p-items').innerHTML = tBody;
 
-                document.getElementById('p-tht').innerText = formatMoney(doc.total_ht); document.getElementById('p-tva-rate').innerText = doc.tva_rate; document.getElementById('p-tva').innerText = formatMoney(doc.total_tva); document.getElementById('p-tttc').innerText = formatMoney(doc.total_ttc);
+                document.getElementById('p-tht').innerText = formatMoney(doc.total_ht); document.getElementById('p-tva-rate').innerText = doc.tva_rate; document.getElementById('p-tva').innerText = formatMoney(doc.total_tva); document.getElementById('p-tttc').innerText = formatMoney(doc.total_ttc) + " MAD";
 
-                const phrase = type === 'devis' ? "Le présent devis est arrêté à la somme de :" : "La présente facture est arrêtée à la somme de :";
-                document.getElementById('p-lettres').innerText = phrase + " " + NumberToLetter(doc.total_ttc).toUpperCase() + " dirhams toutes taxes comprises.";
+                // Formulation propre
+                const typeTxt = type === 'devis' ? 'le présent devis' : 'la présente facture';
+                document.getElementById('p-lettres').innerHTML = `Arrêté ${typeTxt} à la somme de :<br> <span style="font-size:12pt; color:#0f172a; text-transform:uppercase;">${NumberToLetter(doc.total_ttc)} DIRHAMS TTC.</span>`;
 
-                document.getElementById('p-foot-name').innerText = companySettings.nom; document.getElementById('p-foot-address').innerText = companySettings.adresse; document.getElementById('p-foot-rc').innerText = companySettings.rc; document.getElementById('p-foot-if').innerText = companySettings.if_tax; document.getElementById('p-foot-ice').innerText = companySettings.ice; document.getElementById('p-foot-phone').innerText = companySettings.telephone;
+                // Footer
+                document.getElementById('p-foot-name').innerText = companySettings.nom; 
+                document.getElementById('p-foot-address').innerText = companySettings.adresse; 
+                document.getElementById('p-foot-rc').innerText = companySettings.rc; 
+                document.getElementById('p-foot-if').innerText = companySettings.if_tax; 
+                document.getElementById('p-foot-af').innerText = localStorage.getItem('ept_af') || '5785863';
+                document.getElementById('p-foot-ice').innerText = companySettings.ice; 
+                document.getElementById('p-foot-email').innerText = companySettings.email || '';
+                
                 if(companySettings.cnss) { document.getElementById('p-foot-cnss').innerText = companySettings.cnss; document.getElementById('p-foot-cnss-container').style.display='inline'; } else { document.getElementById('p-foot-cnss-container').style.display='none'; }
 
                 document.getElementById('pdf-modal').style.display = 'flex';
