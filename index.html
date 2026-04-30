@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logiciel EPT - Facturation Cloud</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        :root { --bg: #f8fafc; --side: #0f172a; --primary: #2563eb; --text: #1e293b; --border: #e2e8f0; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { display: flex; height: 100vh; overflow: hidden; background: var(--bg); color: var(--text); }
+        
+        .sidebar { width: 250px; background: var(--side); color: #cbd5e1; display: flex; flex-direction: column; z-index: 100;}
+        .logo-box { padding: 20px; text-align: center; background: #020617; font-weight: bold; font-size: 1.2em; color: white;}
+        .nav-item { padding: 15px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; border-left: 3px solid transparent;}
+        .nav-item:hover, .nav-item.active { background: #1e293b; color: white; border-left-color: var(--primary); }
+        
+        .main { flex: 1; padding: 30px; overflow-y: auto; position: relative; }
+        .section { display: none; animation: fadeIn 0.3s; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        h1 { font-size: 1.5em; margin-bottom: 20px; color: #0f172a; }
+        .card { background: white; padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        label { display: block; font-size: 0.85em; font-weight: 600; margin-bottom: 5px; color: #475569; text-transform: uppercase; }
+        input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95em; }
+        
+        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; color: white; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-primary { background: var(--primary); } .btn-success { background: #16a34a; } .btn-danger { background: #dc2626; } 
+        .btn-outline { background: white; color: var(--text); border: 1px solid var(--border); }
+        
+        table.ui-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9em; }
+        table.ui-table th, table.ui-table td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; }
+        table.ui-table th { background: #f8fafc; font-weight: 600; color: #475569; }
+        
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold; text-transform: uppercase; }
+        .bg-gray { background: #f1f5f9; color: #475569; } .bg-blue { background: #dbeafe; color: #1e40af; } .bg-green { background: #dcfce7; color: #166534; } .bg-red { background: #fee2e2; color: #991b1b; } .bg-yellow { background: #fef9c3; color: #854d0e; }
+        
+        .filter-bar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
+        .filter-controls { display: flex; gap: 15px; align-items: flex-end; }
+        
+        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
+        .toast { background: #0f172a; color: white; padding: 15px 25px; border-radius: 4px; margin-top: 10px; font-size: 0.9em; box-shadow: 0 4px 6px rgba(0,0,0,0.1); animation: slideIn 0.3s; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        #error-banner { display: none; background: #dc2626; color: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; font-weight: 500; font-size: 0.9em; }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); z-index: 9999; flex-direction: column; align-items: center; padding: 40px 20px; overflow-y: auto; backdrop-filter: blur(4px); }
+        .preview-actions { background: white; padding: 15px 25px; border-radius: 8px; display: flex; gap: 15px; margin-bottom: 30px; position: sticky; top: 20px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+        /* =========================================
+           A4 PDF TEMPLATE - DESIGN PREMIUM ET ÉPURÉ (Gris)
+           ========================================= */
+        .a4-document {
+            width: 210mm; min-height: 297mm; background: #ffffff; padding: 20mm 20mm; margin: 0 auto;
+            font-family: 'Arial', Helvetica, sans-serif; color: #000000; box-sizing: border-box; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .pdf-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
+        .pdf-boxes-container { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .pdf-box-wrapper { width: 48%; }
+        .pdf-box-title { font-weight: bold; font-size: 10pt; margin-bottom: 8px; text-decoration: underline; color: #1e293b; }
+        
+        /* BORDURES GRISES POUR LES BOITES */
+        .pdf-box { border: 1.5pt solid #94a3b8; padding: 12px; min-height: 85px; font-size: 10pt; line-height: 1.5; color: #0f172a; border-radius: 4px; }
+        
+        .pdf-table-new { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        
+        /* BORDURES GRISES POUR LE TABLEAU */
+        .pdf-table-new th, .pdf-table-new td { border: 1.5pt solid #94a3b8; padding: 10px 12px; font-size: 10pt; }
+        
+        .pdf-table-new th { font-weight: bold; text-align: center; background: #f8fafc; color: #1e293b; }
+        .pdf-table-totals td { font-weight: bold; color: #0f172a; }
+        
+        /* Footer Gris, très compact sur 2 lignes */
+        .pdf-footer-new { 
+            position: absolute; bottom: 10mm; left: 15mm; right: 15mm; text-align: center; 
+            font-size: 8pt; line-height: 1.4; color: #64748b; 
+            border-top: 1.5pt solid #cbd5e1; 
+            padding-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo-box">EPT Logiciel</div>
+        <div class="nav-item active" onclick="nav('dashboard')"><i class="fas fa-chart-pie"></i> Tableau de bord</div>
+        <div class="nav-item" onclick="nav('devis')"><i class="fas fa-file-alt"></i> Devis</div>
+        <div class="nav-item" onclick="nav('factures')"><i class="fas fa-file-invoice"></i> Factures</div>
+        <div class="nav-item" onclick="nav('paiements')"><i class="fas fa-money-bill-wave"></i> Paiements</div>
+        <div class="nav-item" onclick="nav('clients')"><i class="fas fa-users"></i> Clients</div>
+        <div class="nav-item" onclick="nav('settings')"><i class="fas fa-cog"></i> Paramètres</div>
+    </div>
+
+    <div class="main">
+        <div id="error-banner">
+            <i class="fas fa-exclamation-triangle"></i> <strong>Problème de connexion à Supabase détecté !</strong><br>
+            <span id="error-msg">L'application fonctionne en mode hors-ligne/dégradé.</span>
+        </div>
+
+        <div id="dashboard" class="section active">
+            <div class="filter-bar">
+                <h1 style="margin:0;">Tableau de bord</h1>
+                <div class="filter-controls">
+                    <div><label>Date du</label><input type="date" id="dash-start"></div>
+                    <div><label>Date au</label><input type="date" id="dash-end"></div>
+                    <button class="btn btn-primary" onclick="loadDashboard()"><i class="fas fa-filter"></i></button>
+                    <button class="btn btn-outline" onclick="resetFilters('dash')"><i class="fas fa-undo"></i></button>
+                </div>
+            </div>
+            <div class="grid">
+                <div class="card" style="border-left: 4px solid var(--info);"><h3>C.A Facturé (Période)</h3><h2 id="kpi-ca" style="color:var(--primary); margin-top:10px;">0.00 MAD</h2></div>
+                <div class="card" style="border-left: 4px solid var(--success);"><h3>Montant Encaissé (Période)</h3><h2 id="kpi-encaisse" style="color:#16a34a; margin-top:10px;">0.00 MAD</h2></div>
+                <div class="card" style="border-left: 4px solid var(--danger);"><h3>Reste à recouvrer (Total)</h3><h2 id="kpi-retard" style="color:#dc2626; margin-top:10px;">0.00 MAD</h2></div>
+            </div>
+        </div>
+
+        <div id="clients" class="section">
+            <div class="filter-bar">
+                <h1 style="margin:0;">Base Clients</h1>
+                <button class="btn btn-primary" onclick="openClientForm()"><i class="fas fa-plus"></i> Nouveau Client</button>
+            </div>
+            <div class="card" id="client-form" style="display:none; background:#f8fafc;">
+                <input type="hidden" id="c-id">
+                <div class="grid">
+                    <div><label>Nom de la société / Client (*)</label><input type="text" id="c-nom"></div>
+                    <div><label>Email</label><input type="text" id="c-email"></div>
+                    <div><label>Téléphone</label><input type="text" id="c-tel"></div>
+                </div>
+                <div><label>Adresse détaillée (ICE, IF...)</label><textarea id="c-adresse"></textarea></div>
+                <div style="margin-top:15px;">
+                    <button class="btn btn-success" onclick="saveClient()">Enregistrer</button>
+                    <button class="btn btn-outline" onclick="document.getElementById('client-form').style.display='none'">Annuler</button>
+                </div>
+            </div>
+            <div class="card"><table class="ui-table"><thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Actions</th></tr></thead><tbody id="clients-list"></tbody></table></div>
+        </div>
+
+        <div id="devis" class="section">
+            <div class="filter-bar">
+                <h1 style="margin:0;">Registre Devis</h1>
+                <div class="filter-controls">
+                    <div><label>Du</label><input type="date" id="dev-start"></div>
+                    <div><label>Au</label><input type="date" id="dev-end"></div>
+                    <button class="btn btn-primary" onclick="loadDevis()"><i class="fas fa-filter"></i></button>
+                    <button class="btn btn-outline" onclick="resetFilters('dev')"><i class="fas fa-undo"></i></button>
+                    <button class="btn btn-success" onclick="openDocEditor('devis')"><i class="fas fa-plus"></i> Créer</button>
+                </div>
+            </div>
+            <div class="card"><table class="ui-table"><thead><tr><th>Réf</th><th>Date</th><th>Client</th><th>TTC</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="devis-list"></tbody></table></div>
+        </div>
+
+        <div id="factures" class="section">
+            <div class="filter-bar">
+                <h1 style="margin:0;">Registre Factures</h1>
+                <div class="filter-controls">
+                    <div><label>Du</label><input type="date" id="fac-start"></div>
+                    <div><label>Au</label><input type="date" id="fac-end"></div>
+                    <button class="btn btn-primary" onclick="loadFactures()"><i class="fas fa-filter"></i></button>
+                    <button class="btn btn-outline" onclick="resetFilters('fac')"><i class="fas fa-undo"></i></button>
+                    <button class="btn btn-success" onclick="openDocEditor('facture')"><i class="fas fa-plus"></i> Créer</button>
+                </div>
+            </div>
+            <div class="card"><table class="ui-table"><thead><tr><th>Réf</th><th>Date</th><th>Client</th><th>TTC</th><th>Reste dû</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="factures-list"></tbody></table></div>
+        </div>
+
+        <div id="paiements" class="section">
+            <h1 style="margin-bottom: 25px;">Suivi des Paiements</h1>
+            <div class="card" id="pay-form" style="display:none; background:#f8fafc; border-left: 4px solid var(--success);">
+                <h3>Enregistrer un paiement : <span id="pay-facture-ref" style="color:var(--primary);"></span></h3>
+                <input type="hidden" id="pay-facture-id">
+                <div class="grid" style="margin-top:15px;">
+                    <div><label>Montant (MAD)</label><input type="number" id="pay-montant" step="0.01"></div>
+                    <div><label>Date du paiement</label><input type="date" id="pay-date"></div>
+                    <div><label>Mode de paiement</label>
+                        <select id="pay-mode"><option value="Virement">Virement</option><option value="Chèque">Chèque</option><option value="Espèces">Espèces</option></select>
+                    </div>
+                    <div><label>Référence (N° Chèque...)</label><input type="text" id="pay-ref"></div>
+                </div>
+                <div style="margin-top:15px;">
+                    <button class="btn btn-success" onclick="savePayment()">Valider le paiement</button>
+                    <button class="btn btn-outline" onclick="document.getElementById('pay-form').style.display='none'">Annuler</button>
+                </div>
+            </div>
+            <div class="card"><table class="ui-table"><thead><tr><th>Facture liée</th><th>Date</th><th>Mode</th><th>Référence</th><th>Montant</th><th>Actions</th></tr></thead><tbody id="paiements-list"></tbody></table></div>
+        </div>
+
+        <div id="settings" class="section">
+            <h1 style="margin-bottom: 25px;">Paramètres Officiels (EPT)</h1>
+            <div class="card">
+                <h3 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">Images et Cachet</h3>
+                <div class="grid" style="margin-bottom: 30px;">
+                    <div>
+                        <label>Logo de l'entreprise</label>
+                        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                            <div style="width: 150px; height: 80px; border: 1px dashed #94a3b8; display: flex; align-items: center; justify-content: center; background: #f8fafc;">
+                                <img id="s-logo-preview" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+                            </div>
+                            <input type="file" id="s-logo" accept="image/*" onchange="previewImage(event, 's-logo-preview')">
+                        </div>
+                    </div>
+                    <div>
+                        <label>Cachet et Signature</label>
+                        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                            <div style="width: 150px; height: 80px; border: 1px dashed #94a3b8; display: flex; align-items: center; justify-content: center; background: #f8fafc;">
+                                <img id="s-cachet-preview" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+                            </div>
+                            <input type="file" id="s-cachet" accept="image/*" onchange="previewImage(event, 's-cachet-preview')">
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">Informations légales (Pied de page)</h3>
+                <div class="grid">
+                    <div><label>Nom Société</label><input type="text" id="s-nom" value="EPT, SARL"></div>
+                    <div><label>Téléphone / Fax</label><input type="text" id="s-tel" value="Tél: 0524438768"></div>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;"><label>Adresse de l'émetteur</label><input type="text" id="s-adresse" value="QUARTIER MASSAR, 1050 bureau n 2, MARRAKECH"></div>
+                <div class="form-group" style="margin-bottom: 15px;"><label>Email</label><input type="text" id="s-email" value="direction@ept.com"></div>
+                
+                <div class="grid">
+                    <div><label>RC</label><input type="text" id="s-rc" value="86179"></div>
+                    <div><label>IF</label><input type="text" id="s-if" value="25023231"></div>
+                    <div><label>AF</label><input type="text" id="s-af" value="5785863"></div>
+                    <div><label>ICE</label><input type="text" id="s-ice" value="00263100/1000054"></div>
+                    <div><label>CNSS (Optionnel)</label><input type="text" id="s-cnss"></div>
+                </div>
+                
+                <div style="text-align: right; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Enregistrer dans Supabase</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="doc-editor" class="section">
+            <h1 id="editor-title">Création Document</h1>
+            <input type="hidden" id="doc-type">
+            <div class="card">
+                <div class="grid">
+                    <div><label>Sélectionner le Client (*)</label><select id="doc-client"></select></div>
+                    <div><label>N° Pièce</label><input type="text" id="doc-ref"></div>
+                    <div><label>Date</label><input type="date" id="doc-date"></div>
+                </div>
+                <h3 style="margin-top:30px;">Prestations</h3>
+                <table class="ui-table">
+                    <thead><tr><th style="width:55%;">Désignation</th><th style="width:15%;">Qté</th><th style="width:20%;">Prix U. (MAD)</th><th></th></tr></thead>
+                    <tbody id="doc-lines"></tbody>
+                </table>
+                <button class="btn btn-outline" style="margin-top:10px;" onclick="addDocLine()"><i class="fas fa-plus"></i> Ajouter ligne</button>
+                
+                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">
+                    <div><label>TVA (%)</label><input type="number" id="doc-tva-rate" value="20" style="width:100px;" oninput="calcTotal()"></div>
+                    <div style="background:#f8fafc; padding:20px; border-radius:8px; border:1px solid var(--border); min-width: 300px;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>Total H.T</span><strong id="t-ht">0.00</strong></div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>TVA</span><strong id="t-tva">0.00</strong></div>
+                        <div style="display:flex; justify-content:space-between; font-size:1.2em; border-top:2px solid #0f172a; padding-top:10px;"><strong>Total TTC</strong><strong id="t-ttc">0.00</strong></div>
+                    </div>
+                </div>
+                <div style="text-align:right; margin-top:20px;">
+                    <button class="btn btn-outline" onclick="nav(document.getElementById('doc-type').value === 'devis' ? 'devis' : 'factures')">Annuler</button>
+                    <button class="btn btn-success" onclick="saveDocument()"><i class="fas fa-save"></i> Enregistrer le document</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="selection-modal" class="modal-overlay">
+        <div class="card" style="width: 600px; max-width: 95%;">
+            <h3 style="margin-bottom: 20px;">Sélection des prestations à facturer</h3>
+            <p style="margin-bottom: 15px; font-size: 0.9em; color: #475569;">Cochez les éléments du devis que vous souhaitez inclure dans cette facture :</p>
+            
+            <div id="selection-list" style="max-height: 300px; overflow-y: auto; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 4px; padding: 10px;">
+                </div>
+            
+            <div style="text-align: right; margin-top: 20px;">
+                <button class="btn btn-outline" onclick="document.getElementById('selection-modal').style.display='none'">Annuler</button>
+                <button class="btn btn-primary" onclick="confirmPartialInvoice()"><i class="fas fa-file-invoice"></i> Générer la facture</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="pdf-modal" class="modal-overlay">
+        <div class="preview-actions">
+            <button class="btn btn-outline" onclick="document.getElementById('pdf-modal').style.display='none'"><i class="fas fa-times"></i> Fermer</button>
+            <button class="btn btn-primary" onclick="downloadPDF()"><i class="fas fa-download"></i> Télécharger la facture en PDF</button>
+        </div>
+        
+        <div id="pdf-export" class="a4-document">
+            
+            <div class="pdf-header-top">
+                <div style="text-align: left; width: 280px;">
+                    <img id="p-logo" src="" style="max-width: 100%; max-height: 90px; margin-bottom: 5px; display:none;">
+                </div>
+                <div style="text-align: right; font-family: 'Arial', sans-serif;">
+                    <h1 id="p-main-title" style="margin: 0 0 10px 0; font-size: 26pt; color: #0f172a; text-transform: uppercase; letter-spacing: 2px;">FACTURE</h1>
+                    <div style="font-size: 11pt; color: #334155; font-weight: bold; margin-bottom: 3px;">N° : <span id="p-ref"></span></div>
+                    <div style="font-size: 11pt; color: #334155;">Date : <span id="p-date-text"></span></div>
+                </div>
+            </div>
+
+            <div class="pdf-boxes-container">
+                <div class="pdf-box-wrapper">
+                    <div class="pdf-box-title">Émetteur</div>
+                    <div class="pdf-box">
+                        <strong id="p-f-name"></strong><br>
+                        <span id="p-f-address"></span>
+                    </div>
+                </div>
+                <div class="pdf-box-wrapper">
+                    <div class="pdf-box-title">À l'attention de :</div>
+                    <div class="pdf-box">
+                        <strong id="p-client" style="text-transform: uppercase;"></strong><br>
+                        <span id="p-client-details" style="white-space: pre-wrap;"></span>
+                    </div>
+                </div>
+            </div>
+
+            <table class="pdf-table-new">
+                <thead>
+                    <tr>
+                        <th style="width: 50%; text-align: left;">Désignation</th>
+                        <th style="width: 20%; text-align: center;">Prix Unitaire</th>
+                        <th style="width: 10%; text-align: center;">Qté</th>
+                        <th style="width: 20%; text-align: right;">Total H.T</th>
+                    </tr>
+                </thead>
+                <tbody id="p-items"></tbody>
+                <tbody class="pdf-table-totals">
+                    <tr><td colspan="3" style="text-align: right; padding-right: 20px;">Total H.T</td><td style="text-align: right;" id="p-tht"></td></tr>
+                    <tr><td colspan="3" style="text-align: right; padding-right: 20px;">TVA <span id="p-tva-rate"></span>%</td><td style="text-align: right;" id="p-tva"></td></tr>
+                    <tr><td colspan="3" style="text-align: right; padding-right: 20px;">Total TTC</td><td style="text-align: right; font-size: 11pt;" id="p-tttc"></td></tr>
+                </tbody>
+            </table>
+
+            <div style="font-family: 'Arial', sans-serif; font-size: 11pt; line-height: 1.6; margin-top: 25px; padding: 15px; background: #f8fafc; border-left: 3px solid #94a3b8;">
+                <span id="p-lettres"></span>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 30px; padding-right: 20px;">
+                <img id="p-cachet" src="" style="max-width: 300px; max-height: 160px; object-fit: contain; display:none;">
+            </div>
+
+            <div class="pdf-footer-new">
+                <div style="margin-bottom: 4px;">
+                    <strong id="p-foot-name" style="font-size: 9pt; color: #1e293b;"></strong> - 
+                    <span id="p-foot-address"></span> - 
+                    <strong>Email:</strong> <span id="p-foot-email"></span>
+                </div>
+                <div>
+                    <strong>RC:</strong> <span id="p-foot-rc"></span> &nbsp;|&nbsp; 
+                    <strong>IF:</strong> <span id="p-foot-if"></span> &nbsp;|&nbsp; 
+                    <strong>AF:</strong> <span id="p-foot-af"></span> &nbsp;|&nbsp; 
+                    <span id="p-foot-cnss-container" style="display:none;"><strong>CNSS:</strong> <span id="p-foot-cnss"></span> &nbsp;|&nbsp; </span>
+                    <strong>ICE:</strong> <span id="p-foot-ice"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script>
+        // ================= CONNEXION SUPABASE =================
+        const SUPABASE_URL = 'https://qgiwbvfucfclmnegeqgt.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_HhNxh3sDsYZNbsTBb5BKFw_eXZnyi1Z'; 
+        
+        let supabaseClient; 
+
+        try {
+            if (window.supabase) {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        } catch(e) {
+            console.error("Erreur d'initialisation de Supabase", e);
+        }
+
+        let companySettings = {};
+        let currentDevisToInvoice = null;
+        let currentDevisLinesToInvoice = [];
+
+        // ================= UTILITAIRES =================
+        function toast(msg) {
+            const t = document.createElement('div'); t.className = 'toast'; t.innerText = msg;
+            document.getElementById('toast-container').appendChild(t);
+            setTimeout(() => { t.remove(); }, 3000);
+        }
+
+        function showError(msg) {
+            const banner = document.getElementById('error-banner');
+            document.getElementById('error-msg').innerText = msg;
+            banner.style.display = 'block';
+        }
+
+        const formatMoney = (n) => parseFloat(n).toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+        function NumberToLetter(n) {
+            const unites = ["", "Un", "Deux", "Trois", "Quatre", "Cinq", "Six", "Sept", "Huit", "Neuf", "Dix", "Onze", "Douze", "Treize", "Quatorze", "Quinze", "Seize", "Dix-sept", "Dix-huit", "Dix-neuf"];
+            const dizaines = ["", "Dix", "Vingt", "Trente", "Quarante", "Cinquante", "Soixante", "Soixante-dix", "Quatre-vingt", "Quatre-vingt-dix"];
+            if (n === 0) return "Zéro";
+            function convertInt(val) {
+                if(val < 20) return unites[val];
+                if(val < 100) { let d = Math.floor(val/10); let u = val%10; if(d===7 || d===9) { d--; u+=10; } return dizaines[d] + (u>0 ? (u===1||u===11?" et ":" ") + unites[u] : ""); }
+                if(val < 1000) { let c = Math.floor(val/100); let r = val%100; return (c>1?unites[c]+" ":"") + "Cent" + (c>1&&r===0?"s":"") + (r>0?" "+convertInt(r):""); }
+                if(val < 1000000) { let m = Math.floor(val/1000); let r = val%1000; return (m>1?convertInt(m)+" ":"") + "Mille" + (r>0?" "+convertInt(r):""); }
+                return val.toString(); 
+            }
+            let entier = Math.floor(n); let decimal = Math.round((n - entier) * 100);
+            let res = convertInt(entier);
+            if(decimal > 0) res += " et " + convertInt(decimal) + " Centimes";
+            return res;
+        }
+
+        function resetFilters(prefix) {
+            document.getElementById(prefix+'-start').value = ''; document.getElementById(prefix+'-end').value = '';
+            if(prefix==='dash') loadDashboard(); if(prefix==='dev') loadDevis(); if(prefix==='fac') loadFactures();
+        }
+
+        function initFilters() {
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+            const today = now.toISOString().split('T')[0];
+            document.getElementById('dash-start').value = firstDay; document.getElementById('dash-end').value = today;
+            document.getElementById('dev-start').value = firstDay; document.getElementById('dev-end').value = today;
+            document.getElementById('fac-start').value = firstDay; document.getElementById('fac-end').value = today;
+        }
+
+        // ================= NAVIGATION =================
+        window.nav = async function(sectionId) {
+            document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            
+            const targetSec = document.getElementById(sectionId);
+            if(targetSec) targetSec.classList.add('active');
+            
+            try { if(event && event.currentTarget) event.currentTarget.classList.add('active'); } catch(e) {}
+            
+            if(!supabaseClient) { showError("Supabase est inactif."); return; }
+            
+            try {
+                if(sectionId === 'clients') await loadClients();
+                if(sectionId === 'devis') await loadDevis();
+                if(sectionId === 'factures') await loadFactures();
+                if(sectionId === 'paiements') await loadPaiements();
+                if(sectionId === 'settings') await loadSettings();
+                if(sectionId === 'dashboard') await loadDashboard();
+            } catch(e) {
+                showError("Erreur Supabase lors du chargement : " + e.message);
+            }
+        };
+
+        // ================= CLIENTS =================
+        window.openClientForm = function() { document.getElementById('c-id').value=''; document.getElementById('c-nom').value=''; document.getElementById('c-email').value=''; document.getElementById('c-tel').value=''; document.getElementById('c-adresse').value=''; document.getElementById('client-form').style.display='block'; }
+        
+        async function loadClients() {
+            const { data, error } = await supabaseClient.from('clients').select('*').order('nom', { ascending: true });
+            if(error) throw error;
+            let html = ''; let options = '<option value="">-- Sélectionnez --</option>';
+            (data||[]).forEach(c => {
+                html += `<tr><td>${c.nom}</td><td>${c.email||''}</td><td>${c.telephone||''}</td><td><button class="btn btn-danger btn-sm" onclick="deleteClient('${c.id}')"><i class="fas fa-trash"></i></button></td></tr>`;
+                options += `<option value="${c.id}">${c.nom}</option>`;
+            });
+            document.getElementById('clients-list').innerHTML = html;
+            document.getElementById('doc-client').innerHTML = options;
+        }
+
+        window.saveClient = async function() {
+            try {
+                const nom = document.getElementById('c-nom').value; if(!nom) return alert('Le nom est requis');
+                const client = { nom, email: document.getElementById('c-email').value, telephone: document.getElementById('c-tel').value, adresse: document.getElementById('c-adresse').value };
+                const { error } = await supabaseClient.from('clients').insert([client]);
+                if(error) throw error;
+                document.getElementById('client-form').style.display='none';
+                toast("Client enregistré"); loadClients();
+            } catch(e) { showError("Erreur sauvegarde : " + e.message); }
+        };
+
+        window.deleteClient = async function(id) {
+            if(!confirm('Supprimer définitivement ce client ?')) return;
+            try { const { error } = await supabaseClient.from('clients').delete().eq('id', id); if(error) throw error; toast("Client supprimé"); loadClients(); } catch(e) { showError("Erreur : " + e.message); }
+        };
+
+        // ================= PARAMETRES =================
+        async function loadSettings() {
+            const { data, error } = await supabaseClient.from('parametres_societe').select('*').single();
+            if(error && error.code !== 'PGRST116') throw error; 
+            
+            const savedAf = localStorage.getItem('ept_af') || '5785863';
+            document.getElementById('s-af').value = savedAf;
+
+            if(data) {
+                companySettings = data;
+                document.getElementById('s-nom').value = data.nom || ''; document.getElementById('s-tel').value = data.telephone || '';
+                document.getElementById('s-adresse').value = data.adresse || ''; document.getElementById('s-rc').value = data.rc || '';
+                document.getElementById('s-if').value = data.if_tax || ''; document.getElementById('s-ice').value = data.ice || ''; document.getElementById('s-cnss').value = data.cnss || '';
+                document.getElementById('s-email').value = data.email || '';
+                if(data.logo_base64) { document.getElementById('s-logo-preview').src = data.logo_base64; document.getElementById('s-logo-preview').style.display='block'; }
+                if(data.cachet_base64) { document.getElementById('s-cachet-preview').src = data.cachet_base64; document.getElementById('s-cachet-preview').style.display='block'; }
+            }
+        }
+
+        window.previewImage = function(event, imgId) {
+            const file = event.target.files[0];
+            if(file) { const r = new FileReader(); r.onload = e => { document.getElementById(imgId).src = e.target.result; document.getElementById(imgId).style.display = 'block'; }; r.readAsDataURL(file); }
+        };
+
+        window.saveSettings = async function() {
+            try {
+                localStorage.setItem('ept_af', document.getElementById('s-af').value);
+
+                const updates = { nom: document.getElementById('s-nom').value, email: document.getElementById('s-email').value, telephone: document.getElementById('s-tel').value, adresse: document.getElementById('s-adresse').value, rc: document.getElementById('s-rc').value, if_tax: document.getElementById('s-if').value, ice: document.getElementById('s-ice').value, cnss: document.getElementById('s-cnss').value };
+                const lImg = document.getElementById('s-logo-preview').src; if(lImg && lImg.startsWith('data:')) updates.logo_base64 = lImg;
+                const cImg = document.getElementById('s-cachet-preview').src; if(cImg && cImg.startsWith('data:')) updates.cachet_base64 = cImg;
+
+                let error;
+                if(companySettings.id) { const res = await supabaseClient.from('parametres_societe').update(updates).eq('id', companySettings.id); error = res.error; } 
+                else { const res = await supabaseClient.from('parametres_societe').insert([updates]); error = res.error; }
+                
+                if(error) throw error; toast('Paramètres enregistrés.'); loadSettings();
+            } catch(e) { showError("Erreur paramètres : " + e.message); }
+        };
+
+        // ================= CREATION DOC =================
+        window.openDocEditor = function(type) {
+            document.getElementById('doc-type').value = type;
+            document.getElementById('editor-title').innerText = type === 'devis' ? "Créer un Devis" : "Créer une Facture";
+            document.getElementById('doc-date').valueAsDate = new Date();
+            const yM = new Date().getFullYear().toString() + String(new Date().getMonth()+1).padStart(2, '0');
+            document.getElementById('doc-ref').value = (type === 'devis' ? 'DV-' : 'FA-') + yM + '-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('doc-lines').innerHTML = ''; addDocLine(); nav('doc-editor');
+        };
+
+        window.cancelDoc = function() { nav(document.getElementById('doc-type').value === 'devis' ? 'devis' : 'factures'); };
+
+        window.addDocLine = function() {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td><input type="text" class="l-des form-control" placeholder="Description..."></td>
+            <td><input type="number" class="l-qty form-control" value="1" style="text-align:center;" oninput="calcTotal()"></td>
+            <td><input type="number" class="l-px form-control" value="0" step="0.01" oninput="calcTotal()"></td>
+            <td><button class="btn btn-danger btn-sm" onclick="this.closest('tr').remove(); calcTotal()"><i class="fas fa-trash"></i></button></td>`;
+            document.getElementById('doc-lines').appendChild(tr);
+        };
+
+        window.calcTotal = function() {
+            let ht = 0;
+            document.querySelectorAll('#doc-lines tr').forEach(tr => { ht += (parseFloat(tr.querySelector('.l-qty').value)||0) * (parseFloat(tr.querySelector('.l-px').value)||0); });
+            const tvaR = parseFloat(document.getElementById('doc-tva-rate').value)||0; const tva = ht * (tvaR/100);
+            document.getElementById('t-ht').innerText = formatMoney(ht); document.getElementById('t-tva').innerText = formatMoney(tva); document.getElementById('t-ttc').innerText = formatMoney(ht+tva);
+            return {ht, tvaR, tva, ttc: ht+tva};
+        };
+
+        window.saveDocument = async function() {
+            try {
+                const type = document.getElementById('doc-type').value;
+                const client_id = document.getElementById('doc-client').value;
+                if(!client_id) return alert("Sélectionnez un client.");
+                
+                let linesData = [];
+                document.querySelectorAll('#doc-lines tr').forEach(tr => {
+                    const des = tr.querySelector('.l-des').value;
+                    if(des.trim() !== '') linesData.push({ designation: des, quantite: parseFloat(tr.querySelector('.l-qty').value)||1, prix_unitaire: parseFloat(tr.querySelector('.l-px').value)||0 });
+                });
+                if(linesData.length === 0) return alert("Ajoutez au moins une ligne.");
+
+                const t = calcTotal();
+                const docObj = { ref: document.getElementById('doc-ref').value, client_id, total_ht: t.ht, tva_rate: t.tvaR, total_tva: t.tva, total_ttc: t.ttc };
+                
+                let parentId;
+                if(type === 'devis') {
+                    docObj.date_devis = document.getElementById('doc-date').value;
+                    const {data, error} = await supabaseClient.from('devis').insert([docObj]).select(); if(error) throw error; parentId = data[0].id;
+                } else {
+                    docObj.date_facture = document.getElementById('doc-date').value;
+                    docObj.reste_a_payer = t.ttc;
+                    const {data, error} = await supabaseClient.from('factures').insert([docObj]).select(); if(error) throw error; parentId = data[0].id;
+                }
+
+                linesData = linesData.map(l => { l[type==='devis'?'devis_id':'facture_id'] = parentId; return l; });
+                
+                const linesTableName = type === 'devis' ? 'lignes_devis' : 'lignes_factures';
+                const {error: e2} = await supabaseClient.from(linesTableName).insert(linesData); if(e2) throw e2;
+                
+                toast(type === 'devis' ? "Devis enregistré" : "Facture créée");
+                nav(type === 'devis' ? 'devis' : 'factures');
+            } catch(e) { showError("Erreur enregistrement: " + e.message); }
+        };
+
+        // ================= LISTES =================
+        function getBadgeClass(status) { const map = {'Brouillon': 'bg-gray', 'Envoyé': 'bg-blue', 'Validé': 'bg-green', 'Refusé': 'bg-red', 'Facturé': 'bg-gray', 'Non payée': 'bg-red', 'Partiellement payée': 'bg-yellow', 'Payée': 'bg-green', 'En retard': 'bg-red'}; return map[status] || 'bg-gray'; }
+
+        async function loadDevis() {
+            let query = supabaseClient.from('devis').select('*, clients(nom)').order('created_at', {ascending: false});
+            const s = document.getElementById('dev-start').value; const e = document.getElementById('dev-end').value;
+            if(s) query = query.gte('date_devis', s); if(e) query = query.lte('date_devis', e);
+            
+            const { data, error } = await query; if(error) throw error;
+            let html = '';
+            (data||[]).forEach(d => {
+                let acts = `<button class="btn btn-outline btn-sm" onclick="openPDF('${d.id}', 'devis')"><i class="fas fa-print"></i></button> `;
+                if(d.statut !== 'Facturé') acts += `<select class="form-control" onchange="updateStatus('devis', '${d.id}', this.value)" style="display:inline-block; width:auto; padding:4px;"><option selected disabled>Statut</option><option>Envoyé</option><option>Validé</option><option>Refusé</option></select> `;
+                if(d.statut === 'Validé') acts += `<button class="btn btn-success btn-sm" onclick="openSelectionModal('${d.id}')" title="Générer Facture"><i class="fas fa-file-invoice"></i></button> `;
+                acts += `<button class="btn btn-danger btn-sm" onclick="deleteDoc('${d.id}', 'devis')"><i class="fas fa-trash"></i></button>`;
+                html += `<tr><td><strong>${d.ref}</strong></td><td>${d.date_devis.split('-').reverse().join('/')}</td><td>${d.clients?.nom}</td><td>${formatMoney(d.total_ttc)}</td><td><span class="badge ${getBadgeClass(d.statut)}">${d.statut}</span></td><td>${acts}</td></tr>`;
+            });
+            document.getElementById('devis-list').innerHTML = html;
+        }
+
+        async function loadFactures() {
+            let query = supabaseClient.from('factures').select('*, clients(nom)').order('created_at', {ascending: false});
+            const s = document.getElementById('fac-start').value; const e = document.getElementById('fac-end').value;
+            if(s) query = query.gte('date_facture', s); if(e) query = query.lte('date_facture', e);
+            
+            const { data, error } = await query; if(error) throw error;
+            let html = '';
+            (data||[]).forEach(f => {
+                let acts = `<button class="btn btn-outline btn-sm" onclick="openPDF('${f.id}', 'facture')"><i class="fas fa-print"></i></button> `;
+                if(f.reste_a_payer > 0) acts += `<button class="btn btn-success btn-sm" onclick="openPaiement('${f.id}', '${f.ref}', ${f.reste_a_payer})"><i class="fas fa-dollar-sign"></i> Payer</button> `;
+                acts += `<button class="btn btn-danger btn-sm" onclick="deleteDoc('${f.id}', 'factures')"><i class="fas fa-trash"></i></button>`;
+                html += `<tr><td><strong>${f.ref}</strong></td><td>${f.date_facture.split('-').reverse().join('/')}</td><td>${f.clients?.nom}</td><td>${formatMoney(f.total_ttc)}</td><td style="color:#dc2626; font-weight:bold;">${formatMoney(f.reste_a_payer)}</td><td><span class="badge ${getBadgeClass(f.statut)}">${f.statut}</span></td><td>${acts}</td></tr>`;
+            });
+            document.getElementById('factures-list').innerHTML = html;
+        }
+
+        window.updateStatus = async function(table, id, status) { 
+            try { const {error} = await supabaseClient.from(table).update({statut: status}).eq('id', id); if(error) throw error; toast("Statut à jour"); table==='devis'?loadDevis():loadFactures(); } catch(e){ showError("Erreur: "+e.message); }
+        };
+
+        window.deleteDoc = async function(id, table) { 
+            if(!confirm('Supprimer ?')) return;
+            try { const {error} = await supabaseClient.from(table).delete().eq('id', id); if(error) throw error; toast("Supprimé"); table==='devis'?loadDevis():loadFactures(); } catch(e){ showError("Erreur: "+e.message); }
+        };
+
+        // ================= FACTURATION PARTIELLE =================
+        window.openSelectionModal = async function(devisId) {
+            try {
+                const { data: d, error: e1 } = await supabaseClient.from('devis').select('*').eq('id', devisId).single();
+                if (e1) throw e1;
+                const { data: lines, error: e2 } = await supabaseClient.from('lignes_devis').select('*').eq('devis_id', devisId);
+                if (e2) throw e2;
+
+                currentDevisToInvoice = d;
+                currentDevisLinesToInvoice = lines;
+
+                const listContainer = document.getElementById('selection-list');
+                listContainer.innerHTML = '';
+                
+                lines.forEach((item, index) => {
+                    let q = parseFloat(item.quantite) || 1;
+                    let p = parseFloat(item.prix_unitaire) || 0;
+                    let lineTotal = q * p;
+                    listContainer.innerHTML += `
+                        <div style="display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #f1f5f9;">
+                            <input type="checkbox" id="chk-item-${index}" value="${index}" checked style="width:auto; margin-right:15px; transform:scale(1.2);">
+                            <label for="chk-item-${index}" style="cursor: pointer; flex: 1; font-size: 0.95em; text-transform:none; margin:0;">
+                                <strong>${item.designation}</strong> <br> 
+                                <span style="color:#64748b;">${item.quantite} x ${formatMoney(item.prix_unitaire)} MAD = ${formatMoney(lineTotal)} MAD</span>
+                            </label>
+                        </div>
+                    `;
+                });
+                document.getElementById('selection-modal').style.display = 'flex';
+            } catch(e) {
+                showError("Erreur lors du chargement des lignes : " + e.message);
+            }
+        };
+
+        window.confirmPartialInvoice = async function() {
+            try {
+                const selectedIndexes = [];
+                document.querySelectorAll('#selection-list input[type="checkbox"]:checked').forEach(cb => {
+                    selectedIndexes.push(parseInt(cb.value));
+                });
+
+                if(selectedIndexes.length === 0) return alert("Veuillez sélectionner au moins une prestation à facturer.");
+
+                const selectedItems = selectedIndexes.map(idx => currentDevisLinesToInvoice[idx]);
+
+                let tht = 0;
+                selectedItems.forEach(item => {
+                    let q = parseFloat(item.quantite) || 1;
+                    let p = parseFloat(item.prix_unitaire) || 0;
+                    tht += (q * p);
+                });
+                
+                let rate = parseFloat(currentDevisToInvoice.tva_rate) || 0;
+                let tva = tht * (rate / 100);
+                let tttc = tht + tva;
+
+                const yM = new Date().getFullYear().toString() + String(new Date().getMonth()+1).padStart(2, '0');
+                const newRef = 'FA-'+yM+'-'+Math.floor(1000+Math.random()*9000);
+                
+                const factObj = { 
+                    ref: newRef, 
+                    devis_id: currentDevisToInvoice.id, 
+                    client_id: currentDevisToInvoice.client_id, 
+                    date_facture: new Date().toISOString().split('T')[0], 
+                    total_ht: tht, 
+                    tva_rate: rate, 
+                    total_tva: tva, 
+                    total_ttc: tttc, 
+                    reste_a_payer: tttc 
+                };
+
+                const { data: newF, error: e3 } = await supabaseClient.from('factures').insert([factObj]).select(); 
+                if(e3) throw e3;
+                
+                const newLines = selectedItems.map(l => ({ 
+                    facture_id: newF[0].id, 
+                    designation: l.designation, 
+                    quantite: l.quantite, 
+                    prix_unitaire: l.prix_unitaire 
+                }));
+                
+                const {error: e4} = await supabaseClient.from('lignes_factures').insert(newLines); 
+                if(e4) throw e4;
+                
+                await supabaseClient.from('devis').update({statut: 'Facturé'}).eq('id', currentDevisToInvoice.id);
+                
+                document.getElementById('selection-modal').style.display = 'none';
+                toast("Facture créée avec succès !"); 
+                nav('factures');
+            } catch(e) {
+                showError("Erreur lors de la facturation : " + e.message);
+            }
+        };
+
+        // ================= PAIEMENTS =================
+        window.openPaiement = function(id, ref, reste) {
+            document.getElementById('pay-facture-id').value = id; document.getElementById('pay-facture-ref').innerText = ref;
+            document.getElementById('pay-montant').value = reste; document.getElementById('pay-date').valueAsDate = new Date(); document.getElementById('pay-ref').value = '';
+            document.getElementById('pay-form').style.display = 'block'; nav('paiements');
+        };
+
+        window.savePayment = async function() {
+            try {
+                const fId = document.getElementById('pay-facture-id').value; const mt = parseFloat(document.getElementById('pay-montant').value);
+                if(!mt || mt <= 0) return alert("Montant invalide.");
+                const payObj = { facture_id: fId, montant: mt, date_paiement: document.getElementById('pay-date').value, mode_paiement: document.getElementById('pay-mode').value, reference: document.getElementById('pay-ref').value };
+                
+                const {error: e1} = await supabaseClient.from('paiements').insert([payObj]); if(e1) throw e1;
+                const { data: f, error: e2 } = await supabaseClient.from('factures').select('total_ttc, reste_a_payer').eq('id', fId).single(); if(e2) throw e2;
+                
+                const newReste = f.reste_a_payer - mt;
+                let status = 'Non payée'; if(newReste <= 0) status = 'Payée'; else if(newReste < f.total_ttc) status = 'Partiellement payée';
+                const {error: e3} = await supabaseClient.from('factures').update({reste_a_payer: newReste, statut: status}).eq('id', fId); if(e3) throw e3;
+                
+                document.getElementById('pay-form').style.display = 'none'; toast("Paiement enregistré"); loadPaiements();
+            } catch(e){ showError("Erreur paiement : "+e.message); }
+        };
+
+        async function loadPaiements() {
+            const { data, error } = await supabaseClient.from('paiements').select('*, factures(ref)').order('created_at', {ascending: false});
+            if(error) throw error; let html = '';
+            (data||[]).forEach(p => { html += `<tr><td><strong>${p.factures?.ref}</strong></td><td>${p.date_paiement.split('-').reverse().join('/')}</td><td>${p.mode_paiement}</td><td>${p.reference}</td><td style="color:#16a34a; font-weight:bold;">${formatMoney(p.montant)}</td><td><button class="btn btn-danger btn-sm" onclick="deletePaiement('${p.id}', '${p.facture_id}', ${p.montant})"><i class="fas fa-trash"></i></button></td></tr>`; });
+            document.getElementById('paiements-list').innerHTML = html;
+        }
+
+        window.deletePaiement = async function(id, fId, montant) {
+            if(!confirm("Annuler ce paiement ?")) return;
+            try {
+                await supabaseClient.from('paiements').delete().eq('id', id);
+                const { data: f } = await supabaseClient.from('factures').select('total_ttc, reste_a_payer').eq('id', fId).single();
+                const newReste = parseFloat(f.reste_a_payer) + parseFloat(montant);
+                let status = 'Non payée'; if(newReste <= 0) status = 'Payée'; else if(newReste < f.total_ttc) status = 'Partiellement payée';
+                await supabaseClient.from('factures').update({reste_a_payer: newReste, statut: status}).eq('id', fId);
+                toast("Paiement annulé"); loadPaiements();
+            } catch(e){ showError("Erreur annulation : "+e.message); }
+        };
+
+        // ================= DASHBOARD =================
+        async function loadDashboard() {
+            const start = document.getElementById('dash-start').value; const end = document.getElementById('dash-end').value;
+            let qF = supabaseClient.from('factures').select('*'); let qP = supabaseClient.from('paiements').select('*');
+            if(start) { qF = qF.gte('date_facture', start); qP = qP.gte('date_paiement', start); }
+            if(end) { qF = qF.lte('date_facture', end); qP = qP.lte('date_paiement', end); }
+            
+            const [ {data: facts, error: e1}, {data: pays, error: e2} ] = await Promise.all([qF, qP]);
+            if(e1 || e2) throw (e1 || e2);
+            
+            let caPer = 0, ret = 0, enc = 0;
+            (facts||[]).forEach(f => { if(f.statut==='Payée') caPer += parseFloat(f.total_ttc); ret += parseFloat(f.reste_a_payer); });
+            (pays||[]).forEach(p => { enc += parseFloat(p.montant); });
+
+            document.getElementById('kpi-ca').innerText = formatMoney(caPer) + ' MAD'; document.getElementById('kpi-encaisse').innerText = formatMoney(enc) + ' MAD'; document.getElementById('kpi-retard').innerText = formatMoney(ret) + ' MAD';
+        }
+
+        // ================= PDF (Pied de page strict sur 2 lignes) =================
+        window.openPDF = async function(id, type) {
+            try {
+                await loadSettings();
+                const tQuery = type === 'devis' ? 'devis' : 'factures';
+                const { data: doc, error: e1 } = await supabaseClient.from(tQuery).select('*, clients(*)').eq('id', id).single(); if(e1) throw e1;
+                
+                const linesTableName = type === 'devis' ? 'lignes_devis' : 'lignes_factures';
+                const { data: lines, error: e2 } = await supabaseClient.from(linesTableName).select('*').eq(`${type}_id`, id); if(e2) throw e2;
+
+                if(companySettings.logo_base64) { document.getElementById('p-logo').src = companySettings.logo_base64; document.getElementById('p-logo').style.display = 'inline-block'; } else { document.getElementById('p-logo').style.display = 'none'; }
+                if(companySettings.cachet_base64) { document.getElementById('p-cachet').src = companySettings.cachet_base64; document.getElementById('p-cachet').style.display = 'inline-block'; } else { document.getElementById('p-cachet').style.display = 'none'; }
+
+                // Mise à jour du Titre
+                document.getElementById('p-main-title').innerText = type === 'devis' ? 'DEVIS' : 'FACTURE';
+                document.getElementById('p-ref').innerText = doc.ref; 
+                document.getElementById('p-date-text').innerText = (type==='devis'?doc.date_devis:doc.date_facture).split('-').reverse().join('/');
+
+                document.getElementById('p-f-name').innerText = companySettings.nom; document.getElementById('p-f-address').innerText = companySettings.adresse;
+                document.getElementById('p-client').innerText = doc.clients.nom; document.getElementById('p-client-details').innerText = doc.clients.adresse || '';
+
+                let tBody = '';
+                lines.forEach(l => { tBody += `<tr><td>${l.designation.replace(/\n/g, '<br>')}</td><td style="text-align:center;">${formatMoney(l.prix_unitaire)}</td><td style="text-align:center;">${l.quantite}</td><td style="text-align:right;">${formatMoney(l.quantite*l.prix_unitaire)}</td></tr>`; });
+                document.getElementById('p-items').innerHTML = tBody;
+
+                document.getElementById('p-tht').innerText = formatMoney(doc.total_ht); document.getElementById('p-tva-rate').innerText = doc.tva_rate; document.getElementById('p-tva').innerText = formatMoney(doc.total_tva); document.getElementById('p-tttc').innerText = formatMoney(doc.total_ttc) + " MAD";
+
+                // Formulation propre
+                const typeTxt = type === 'devis' ? 'le présent devis' : 'la présente facture';
+                document.getElementById('p-lettres').innerHTML = `Arrêté ${typeTxt} à la somme de :<br> <span style="font-size:12pt; color:#0f172a; text-transform:uppercase;">${NumberToLetter(doc.total_ttc)} DIRHAMS TTC.</span>`;
+
+                // Footer
+                document.getElementById('p-foot-name').innerText = companySettings.nom; 
+                document.getElementById('p-foot-address').innerText = companySettings.adresse; 
+                document.getElementById('p-foot-rc').innerText = companySettings.rc; 
+                document.getElementById('p-foot-if').innerText = companySettings.if_tax; 
+                document.getElementById('p-foot-af').innerText = localStorage.getItem('ept_af') || '5785863';
+                document.getElementById('p-foot-ice').innerText = companySettings.ice; 
+                document.getElementById('p-foot-email').innerText = companySettings.email || '';
+                
+                if(companySettings.cnss) { document.getElementById('p-foot-cnss').innerText = companySettings.cnss; document.getElementById('p-foot-cnss-container').style.display='inline'; } else { document.getElementById('p-foot-cnss-container').style.display='none'; }
+
+                document.getElementById('pdf-modal').style.display = 'flex';
+            } catch(e) { showError("Erreur PDF : " + e.message); }
+        };
+
+        window.downloadPDF = function() {
+            toast("Génération du PDF...");
+            const element = document.getElementById('pdf-export');
+            element.style.boxShadow = 'none';
+            const opt = { margin: 0, filename: document.getElementById('p-ref').innerText + '.pdf', image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 3, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+            html2pdf().set(opt).from(element).save().then(() => { toast("Téléchargement réussi !"); element.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)'; });
+        };
+
+        // Lancement
+        document.addEventListener('DOMContentLoaded', async () => {
+            initFilters();
+            if(!supabaseClient) {
+                showError("Le script Supabase n'est pas chargé. Vérifiez votre connexion internet.");
+                document.getElementById('dashboard').classList.add('active');
+                return;
+            }
+            try {
+                const { error } = await supabaseClient.from('parametres_societe').select('id').limit(1);
+                if(error) throw error;
+                await loadSettings(); 
+                nav('dashboard'); 
+            } catch(e) { 
+                showError("Impossible de se connecter à la base de données. Si la clé commence par sb_publishable..., elle pourrait être incorrecte.");
+                document.getElementById('dashboard').classList.add('active');
+            }
+        });
+    </script>
+</body>
+</html>
