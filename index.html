@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" translate="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logiciel EPT - Facturation Cloud</title>
+    <meta name="google" content="notranslate"> <title>Logiciel EPT - Facturation Cloud</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,6 +15,31 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { display: flex; height: 100vh; overflow: hidden; background: var(--bg); color: var(--text); }
         
+        /* =========================================
+           ÉCRAN DE CONNEXION (SÉCURITÉ STRICTE)
+           ========================================= */
+        #login-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0f172a; z-index: 999999; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .login-card {
+            background: white; padding: 40px; border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); width: 100%; max-width: 400px;
+            text-align: center;
+        }
+        .login-card h2 { margin-bottom: 10px; color: #0f172a; font-size: 1.8em; }
+        .login-card p { color: #475569; margin-bottom: 25px; font-size: 0.95em; }
+        .login-card input { text-align: center; font-size: 1.5em; letter-spacing: 5px; padding: 12px; font-weight: bold; border: 2px solid #cbd5e1; border-radius: 6px; width: 100%; outline: none; }
+        .login-card input:focus { border-color: var(--primary); }
+        .login-error { color: #dc2626; margin-top: 15px; display: none; font-size: 0.9em; font-weight: 600; }
+
+        /* Le conteneur de l'application est masqué par défaut */
+        #app-container { display: none; width: 100%; height: 100%; }
+
+        /* =========================================
+           STYLES GÉNÉRAUX DE L'APP
+           ========================================= */
         .sidebar { width: 250px; background: var(--side); color: #cbd5e1; display: flex; flex-direction: column; z-index: 100;}
         .logo-box { padding: 20px; text-align: center; background: #020617; font-weight: bold; font-size: 1.2em; color: white;}
         .nav-item { padding: 15px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; border-left: 3px solid transparent;}
@@ -68,18 +93,13 @@
         .pdf-box-wrapper { width: 48%; }
         .pdf-box-title { font-weight: bold; font-size: 10pt; margin-bottom: 8px; text-decoration: underline; color: #1e293b; }
         
-        /* BORDURES GRISES POUR LES BOITES */
         .pdf-box { border: 1.5pt solid #94a3b8; padding: 12px; min-height: 85px; font-size: 10pt; line-height: 1.5; color: #0f172a; border-radius: 4px; }
         
         .pdf-table-new { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        
-        /* BORDURES GRISES POUR LE TABLEAU */
         .pdf-table-new th, .pdf-table-new td { border: 1.5pt solid #94a3b8; padding: 10px 12px; font-size: 10pt; }
-        
         .pdf-table-new th { font-weight: bold; text-align: center; background: #f8fafc; color: #1e293b; }
         .pdf-table-totals td { font-weight: bold; color: #0f172a; }
         
-        /* Footer Gris, très compact sur 2 lignes */
         .pdf-footer-new { 
             position: absolute; bottom: 10mm; left: 15mm; right: 15mm; text-align: center; 
             font-size: 8pt; line-height: 1.4; color: #64748b; 
@@ -90,187 +110,200 @@
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo-box">EPT Logiciel</div>
-        <div class="nav-item active" onclick="nav('dashboard')"><i class="fas fa-chart-pie"></i> Tableau de bord</div>
-        <div class="nav-item" onclick="nav('devis')"><i class="fas fa-file-alt"></i> Devis</div>
-        <div class="nav-item" onclick="nav('factures')"><i class="fas fa-file-invoice"></i> Factures</div>
-        <div class="nav-item" onclick="nav('paiements')"><i class="fas fa-money-bill-wave"></i> Paiements</div>
-        <div class="nav-item" onclick="nav('clients')"><i class="fas fa-users"></i> Clients</div>
-        <div class="nav-item" onclick="nav('settings')"><i class="fas fa-cog"></i> Paramètres</div>
+    <div id="login-screen">
+        <div class="login-card">
+            <h2>EPT Accès Sécurisé</h2>
+            <p>Veuillez entrer votre code d'accès.</p>
+            <input type="password" id="app-password" placeholder="••••" onkeypress="if(event.key === 'Enter') checkPassword()">
+            <button class="btn btn-primary" style="width: 100%; margin-top: 20px; justify-content: center; font-size: 1.1em; padding: 12px;" onclick="checkPassword()">Se connecter <i class="fas fa-unlock"></i></button>
+            <div id="login-error" class="login-error"><i class="fas fa-exclamation-circle"></i> Code incorrect.</div>
+        </div>
     </div>
 
-    <div class="main">
-        <div id="error-banner">
-            <i class="fas fa-exclamation-triangle"></i> <strong>Problème de connexion à Supabase détecté !</strong><br>
-            <span id="error-msg">L'application fonctionne en mode hors-ligne/dégradé.</span>
+    <div id="app-container">
+        
+        <div class="sidebar">
+            <div class="logo-box">EPT Logiciel</div>
+            <div class="nav-item active" onclick="nav('dashboard')"><i class="fas fa-chart-pie"></i> Tableau de bord</div>
+            <div class="nav-item" onclick="nav('devis')"><i class="fas fa-file-alt"></i> Devis</div>
+            <div class="nav-item" onclick="nav('factures')"><i class="fas fa-file-invoice"></i> Factures</div>
+            <div class="nav-item" onclick="nav('paiements')"><i class="fas fa-money-bill-wave"></i> Paiements</div>
+            <div class="nav-item" onclick="nav('clients')"><i class="fas fa-users"></i> Clients</div>
+            <div class="nav-item" onclick="nav('settings')"><i class="fas fa-cog"></i> Paramètres</div>
         </div>
 
-        <div id="dashboard" class="section active">
-            <div class="filter-bar">
-                <h1 style="margin:0;">Tableau de bord</h1>
-                <div class="filter-controls">
-                    <div><label>Date du</label><input type="date" id="dash-start"></div>
-                    <div><label>Date au</label><input type="date" id="dash-end"></div>
-                    <button class="btn btn-primary" onclick="loadDashboard()"><i class="fas fa-filter"></i></button>
-                    <button class="btn btn-outline" onclick="resetFilters('dash')"><i class="fas fa-undo"></i></button>
-                </div>
+        <div class="main">
+            <div id="error-banner">
+                <i class="fas fa-exclamation-triangle"></i> <strong>Problème de connexion à Supabase détecté !</strong><br>
+                <span id="error-msg">L'application fonctionne en mode hors-ligne/dégradé.</span>
             </div>
-            <div class="grid">
-                <div class="card" style="border-left: 4px solid var(--info);"><h3>C.A Facturé (Période)</h3><h2 id="kpi-ca" style="color:var(--primary); margin-top:10px;">0.00 MAD</h2></div>
-                <div class="card" style="border-left: 4px solid var(--success);"><h3>Montant Encaissé (Période)</h3><h2 id="kpi-encaisse" style="color:#16a34a; margin-top:10px;">0.00 MAD</h2></div>
-                <div class="card" style="border-left: 4px solid var(--danger);"><h3>Reste à recouvrer (Total)</h3><h2 id="kpi-retard" style="color:#dc2626; margin-top:10px;">0.00 MAD</h2></div>
-            </div>
-        </div>
 
-        <div id="clients" class="section">
-            <div class="filter-bar">
-                <h1 style="margin:0;">Base Clients</h1>
-                <button class="btn btn-primary" onclick="openClientForm()"><i class="fas fa-plus"></i> Nouveau Client</button>
-            </div>
-            <div class="card" id="client-form" style="display:none; background:#f8fafc;">
-                <input type="hidden" id="c-id">
-                <div class="grid">
-                    <div><label>Nom de la société / Client (*)</label><input type="text" id="c-nom"></div>
-                    <div><label>Email</label><input type="text" id="c-email"></div>
-                    <div><label>Téléphone</label><input type="text" id="c-tel"></div>
-                </div>
-                <div><label>Adresse détaillée (ICE, IF...)</label><textarea id="c-adresse"></textarea></div>
-                <div style="margin-top:15px;">
-                    <button class="btn btn-success" onclick="saveClient()">Enregistrer</button>
-                    <button class="btn btn-outline" onclick="document.getElementById('client-form').style.display='none'">Annuler</button>
-                </div>
-            </div>
-            <div class="card"><table class="ui-table"><thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Actions</th></tr></thead><tbody id="clients-list"></tbody></table></div>
-        </div>
-
-        <div id="devis" class="section">
-            <div class="filter-bar">
-                <h1 style="margin:0;">Registre Devis</h1>
-                <div class="filter-controls">
-                    <div><label>Du</label><input type="date" id="dev-start"></div>
-                    <div><label>Au</label><input type="date" id="dev-end"></div>
-                    <button class="btn btn-primary" onclick="loadDevis()"><i class="fas fa-filter"></i></button>
-                    <button class="btn btn-outline" onclick="resetFilters('dev')"><i class="fas fa-undo"></i></button>
-                    <button class="btn btn-success" onclick="openDocEditor('devis')"><i class="fas fa-plus"></i> Créer</button>
-                </div>
-            </div>
-            <div class="card"><table class="ui-table"><thead><tr><th>Réf</th><th>Date</th><th>Client</th><th>TTC</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="devis-list"></tbody></table></div>
-        </div>
-
-        <div id="factures" class="section">
-            <div class="filter-bar">
-                <h1 style="margin:0;">Registre Factures</h1>
-                <div class="filter-controls">
-                    <div><label>Du</label><input type="date" id="fac-start"></div>
-                    <div><label>Au</label><input type="date" id="fac-end"></div>
-                    <button class="btn btn-primary" onclick="loadFactures()"><i class="fas fa-filter"></i></button>
-                    <button class="btn btn-outline" onclick="resetFilters('fac')"><i class="fas fa-undo"></i></button>
-                    <button class="btn btn-success" onclick="openDocEditor('facture')"><i class="fas fa-plus"></i> Créer</button>
-                </div>
-            </div>
-            <div class="card"><table class="ui-table"><thead><tr><th>Réf</th><th>Date</th><th>Client</th><th>TTC</th><th>Reste dû</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="factures-list"></tbody></table></div>
-        </div>
-
-        <div id="paiements" class="section">
-            <h1 style="margin-bottom: 25px;">Suivi des Paiements</h1>
-            <div class="card" id="pay-form" style="display:none; background:#f8fafc; border-left: 4px solid var(--success);">
-                <h3>Enregistrer un paiement : <span id="pay-facture-ref" style="color:var(--primary);"></span></h3>
-                <input type="hidden" id="pay-facture-id">
-                <div class="grid" style="margin-top:15px;">
-                    <div><label>Montant (MAD)</label><input type="number" id="pay-montant" step="0.01"></div>
-                    <div><label>Date du paiement</label><input type="date" id="pay-date"></div>
-                    <div><label>Mode de paiement</label>
-                        <select id="pay-mode"><option value="Virement">Virement</option><option value="Chèque">Chèque</option><option value="Espèces">Espèces</option></select>
+            <div id="dashboard" class="section active">
+                <div class="filter-bar">
+                    <h1 style="margin:0;">Tableau de bord</h1>
+                    <div class="filter-controls">
+                        <div><label>Date du</label><input type="date" id="dash-start"></div>
+                        <div><label>Date au</label><input type="date" id="dash-end"></div>
+                        <button class="btn btn-primary" onclick="loadDashboard()"><i class="fas fa-filter"></i></button>
+                        <button class="btn btn-outline" onclick="resetFilters('dash')"><i class="fas fa-undo"></i></button>
                     </div>
-                    <div><label>Référence (N° Chèque...)</label><input type="text" id="pay-ref"></div>
                 </div>
-                <div style="margin-top:15px;">
-                    <button class="btn btn-success" onclick="savePayment()">Valider le paiement</button>
-                    <button class="btn btn-outline" onclick="document.getElementById('pay-form').style.display='none'">Annuler</button>
+                <div class="grid">
+                    <div class="card" style="border-left: 4px solid var(--info);"><h3>C.A Facturé (Période)</h3><h2 id="kpi-ca" style="color:var(--primary); margin-top:10px;">0.00 MAD</h2></div>
+                    <div class="card" style="border-left: 4px solid var(--success);"><h3>Montant Encaissé (Période)</h3><h2 id="kpi-encaisse" style="color:#16a34a; margin-top:10px;">0.00 MAD</h2></div>
+                    <div class="card" style="border-left: 4px solid var(--danger);"><h3>Reste à recouvrer (Total)</h3><h2 id="kpi-retard" style="color:#dc2626; margin-top:10px;">0.00 MAD</h2></div>
                 </div>
             </div>
-            <div class="card"><table class="ui-table"><thead><tr><th>Facture liée</th><th>Date</th><th>Mode</th><th>Référence</th><th>Montant</th><th>Actions</th></tr></thead><tbody id="paiements-list"></tbody></table></div>
-        </div>
 
-        <div id="settings" class="section">
-            <h1 style="margin-bottom: 25px;">Paramètres Officiels (EPT)</h1>
-            <div class="card">
-                <h3 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">Images et Cachet</h3>
-                <div class="grid" style="margin-bottom: 30px;">
-                    <div>
-                        <label>Logo de l'entreprise</label>
-                        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
-                            <div style="width: 150px; height: 80px; border: 1px dashed #94a3b8; display: flex; align-items: center; justify-content: center; background: #f8fafc;">
-                                <img id="s-logo-preview" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+            <div id="clients" class="section">
+                <div class="filter-bar">
+                    <h1 style="margin:0;">Base Clients</h1>
+                    <button class="btn btn-primary" onclick="openClientForm()"><i class="fas fa-plus"></i> Nouveau Client</button>
+                </div>
+                <div class="card" id="client-form" style="display:none; background:#f8fafc;">
+                    <input type="hidden" id="c-id">
+                    <div class="grid">
+                        <div><label>Nom de la société / Client (*)</label><input type="text" id="c-nom"></div>
+                        <div><label>Email</label><input type="text" id="c-email"></div>
+                        <div><label>Téléphone</label><input type="text" id="c-tel"></div>
+                    </div>
+                    <div><label>Adresse détaillée (ICE, IF...)</label><textarea id="c-adresse"></textarea></div>
+                    <div style="margin-top:15px;">
+                        <button class="btn btn-success" onclick="saveClient()">Enregistrer</button>
+                        <button class="btn btn-outline" onclick="document.getElementById('client-form').style.display='none'">Annuler</button>
+                    </div>
+                </div>
+                <div class="card"><table class="ui-table"><thead><tr><th>Nom</th><th>Email</th><th>Téléphone</th><th>Actions</th></tr></thead><tbody id="clients-list"></tbody></table></div>
+            </div>
+
+            <div id="devis" class="section">
+                <div class="filter-bar">
+                    <h1 style="margin:0;">Registre Devis</h1>
+                    <div class="filter-controls">
+                        <div><label>Du</label><input type="date" id="dev-start"></div>
+                        <div><label>Au</label><input type="date" id="dev-end"></div>
+                        <button class="btn btn-primary" onclick="loadDevis()"><i class="fas fa-filter"></i></button>
+                        <button class="btn btn-outline" onclick="resetFilters('dev')"><i class="fas fa-undo"></i></button>
+                        <button class="btn btn-success" onclick="openDocEditor('devis')"><i class="fas fa-plus"></i> Créer</button>
+                    </div>
+                </div>
+                <div class="card"><table class="ui-table"><thead><tr><th>Réf</th><th>Date</th><th>Client</th><th>TTC</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="devis-list"></tbody></table></div>
+            </div>
+
+            <div id="factures" class="section">
+                <div class="filter-bar">
+                    <h1 style="margin:0;">Registre Factures</h1>
+                    <div class="filter-controls">
+                        <div><label>Du</label><input type="date" id="fac-start"></div>
+                        <div><label>Au</label><input type="date" id="fac-end"></div>
+                        <button class="btn btn-primary" onclick="loadFactures()"><i class="fas fa-filter"></i></button>
+                        <button class="btn btn-outline" onclick="resetFilters('fac')"><i class="fas fa-undo"></i></button>
+                        <button class="btn btn-success" onclick="openDocEditor('facture')"><i class="fas fa-plus"></i> Créer</button>
+                    </div>
+                </div>
+                <div class="card"><table class="ui-table"><thead><tr><th>Réf</th><th>Date</th><th>Client</th><th>TTC</th><th>Reste dû</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="factures-list"></tbody></table></div>
+            </div>
+
+            <div id="paiements" class="section">
+                <h1 style="margin-bottom: 25px;">Suivi des Paiements</h1>
+                <div class="card" id="pay-form" style="display:none; background:#f8fafc; border-left: 4px solid var(--success);">
+                    <h3>Enregistrer un paiement : <span id="pay-facture-ref" style="color:var(--primary);"></span></h3>
+                    <input type="hidden" id="pay-facture-id">
+                    <div class="grid" style="margin-top:15px;">
+                        <div><label>Montant (MAD)</label><input type="number" id="pay-montant" step="0.01"></div>
+                        <div><label>Date du paiement</label><input type="date" id="pay-date"></div>
+                        <div><label>Mode de paiement</label>
+                            <select id="pay-mode"><option value="Virement">Virement</option><option value="Chèque">Chèque</option><option value="Espèces">Espèces</option></select>
+                        </div>
+                        <div><label>Référence (N° Chèque...)</label><input type="text" id="pay-ref"></div>
+                    </div>
+                    <div style="margin-top:15px;">
+                        <button class="btn btn-success" onclick="savePayment()">Valider le paiement</button>
+                        <button class="btn btn-outline" onclick="document.getElementById('pay-form').style.display='none'">Annuler</button>
+                    </div>
+                </div>
+                <div class="card"><table class="ui-table"><thead><tr><th>Facture liée</th><th>Date</th><th>Mode</th><th>Référence</th><th>Montant</th><th>Actions</th></tr></thead><tbody id="paiements-list"></tbody></table></div>
+            </div>
+
+            <div id="settings" class="section">
+                <h1 style="margin-bottom: 25px;">Paramètres Officiels (EPT)</h1>
+                <div class="card">
+                    <h3 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">Images et Cachet</h3>
+                    <div class="grid" style="margin-bottom: 30px;">
+                        <div>
+                            <label>Logo de l'entreprise</label>
+                            <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                                <div style="width: 150px; height: 80px; border: 1px dashed #94a3b8; display: flex; align-items: center; justify-content: center; background: #f8fafc;">
+                                    <img id="s-logo-preview" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+                                </div>
+                                <input type="file" id="s-logo" accept="image/*" onchange="previewImage(event, 's-logo-preview')">
                             </div>
-                            <input type="file" id="s-logo" accept="image/*" onchange="previewImage(event, 's-logo-preview')">
+                        </div>
+                        <div>
+                            <label>Cachet et Signature</label>
+                            <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
+                                <div style="width: 150px; height: 80px; border: 1px dashed #94a3b8; display: flex; align-items: center; justify-content: center; background: #f8fafc;">
+                                    <img id="s-cachet-preview" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
+                                </div>
+                                <input type="file" id="s-cachet" accept="image/*" onchange="previewImage(event, 's-cachet-preview')">
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <label>Cachet et Signature</label>
-                        <div style="display: flex; gap: 15px; align-items: center; margin-bottom: 10px;">
-                            <div style="width: 150px; height: 80px; border: 1px dashed #94a3b8; display: flex; align-items: center; justify-content: center; background: #f8fafc;">
-                                <img id="s-cachet-preview" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.style.display='none';">
-                            </div>
-                            <input type="file" id="s-cachet" accept="image/*" onchange="previewImage(event, 's-cachet-preview')">
+
+                    <h3 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">Informations légales (Pied de page)</h3>
+                    <div class="grid">
+                        <div><label>Nom Société</label><input type="text" id="s-nom" value="EPT, SARL"></div>
+                        <div><label>Téléphone / Fax</label><input type="text" id="s-tel" value="Tél: 0524438768"></div>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;"><label>Adresse de l'émetteur</label><input type="text" id="s-adresse" value="QUARTIER MASSAR, 1050 bureau n 2, MARRAKECH"></div>
+                    <div class="form-group" style="margin-bottom: 15px;"><label>Email</label><input type="text" id="s-email" value="direction@ept.com"></div>
+                    
+                    <div class="grid">
+                        <div><label>RC</label><input type="text" id="s-rc" value="86179"></div>
+                        <div><label>IF</label><input type="text" id="s-if" value="25023231"></div>
+                        <div><label>AF</label><input type="text" id="s-af" value="5785863"></div>
+                        <div><label>ICE</label><input type="text" id="s-ice" value="002031081000054"></div>
+                        <div><label>CNSS (Optionnel)</label><input type="text" id="s-cnss"></div>
+                    </div>
+                    
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Enregistrer dans Supabase</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="doc-editor" class="section">
+                <h1 id="editor-title">Création Document</h1>
+                <input type="hidden" id="doc-type">
+                <div class="card">
+                    <div class="grid">
+                        <div><label>Sélectionner le Client (*)</label><select id="doc-client"></select></div>
+                        <div><label>N° Pièce</label><input type="text" id="doc-ref"></div>
+                        <div><label>Date</label><input type="date" id="doc-date"></div>
+                    </div>
+                    <h3 style="margin-top:30px;">Prestations</h3>
+                    <table class="ui-table">
+                        <thead><tr><th style="width:55%;">Désignation</th><th style="width:15%;">Qté</th><th style="width:20%;">Prix U. (MAD)</th><th></th></tr></thead>
+                        <tbody id="doc-lines"></tbody>
+                    </table>
+                    <button class="btn btn-outline" style="margin-top:10px;" onclick="addDocLine()"><i class="fas fa-plus"></i> Ajouter ligne</button>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">
+                        <div><label>TVA (%)</label><input type="number" id="doc-tva-rate" value="20" style="width:100px;" oninput="calcTotal()"></div>
+                        <div style="background:#f8fafc; padding:20px; border-radius:8px; border:1px solid var(--border); min-width: 300px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>Total H.T</span><strong id="t-ht">0.00</strong></div>
+                            <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>TVA</span><strong id="t-tva">0.00</strong></div>
+                            <div style="display:flex; justify-content:space-between; font-size:1.2em; border-top:2px solid #0f172a; padding-top:10px;"><strong>Total TTC</strong><strong id="t-ttc">0.00</strong></div>
                         </div>
                     </div>
-                </div>
-
-                <h3 style="border-bottom: 1px solid #cbd5e1; padding-bottom: 10px;">Informations légales (Pied de page)</h3>
-                <div class="grid">
-                    <div><label>Nom Société</label><input type="text" id="s-nom" value="EPT, SARL"></div>
-                    <div><label>Téléphone / Fax</label><input type="text" id="s-tel" value="Tél: 0524438768"></div>
-                </div>
-                <div class="form-group" style="margin-bottom: 15px;"><label>Adresse de l'émetteur</label><input type="text" id="s-adresse" value="QUARTIER MASSAR, 1050 bureau n 2, MARRAKECH"></div>
-                <div class="form-group" style="margin-bottom: 15px;"><label>Email</label><input type="text" id="s-email" value="direction@ept.com"></div>
-                
-                <div class="grid">
-                    <div><label>RC</label><input type="text" id="s-rc" value="86179"></div>
-                    <div><label>IF</label><input type="text" id="s-if" value="25023231"></div>
-                    <div><label>AF</label><input type="text" id="s-af" value="5785863"></div>
-                    <div><label>ICE</label><input type="text" id="s-ice" value="00263100/1000054"></div>
-                    <div><label>CNSS (Optionnel)</label><input type="text" id="s-cnss"></div>
-                </div>
-                
-                <div style="text-align: right; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Enregistrer dans Supabase</button>
-                </div>
-            </div>
-        </div>
-
-        <div id="doc-editor" class="section">
-            <h1 id="editor-title">Création Document</h1>
-            <input type="hidden" id="doc-type">
-            <div class="card">
-                <div class="grid">
-                    <div><label>Sélectionner le Client (*)</label><select id="doc-client"></select></div>
-                    <div><label>N° Pièce</label><input type="text" id="doc-ref"></div>
-                    <div><label>Date</label><input type="date" id="doc-date"></div>
-                </div>
-                <h3 style="margin-top:30px;">Prestations</h3>
-                <table class="ui-table">
-                    <thead><tr><th style="width:55%;">Désignation</th><th style="width:15%;">Qté</th><th style="width:20%;">Prix U. (MAD)</th><th></th></tr></thead>
-                    <tbody id="doc-lines"></tbody>
-                </table>
-                <button class="btn btn-outline" style="margin-top:10px;" onclick="addDocLine()"><i class="fas fa-plus"></i> Ajouter ligne</button>
-                
-                <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:30px; border-top:1px solid var(--border); padding-top:20px;">
-                    <div><label>TVA (%)</label><input type="number" id="doc-tva-rate" value="20" style="width:100px;" oninput="calcTotal()"></div>
-                    <div style="background:#f8fafc; padding:20px; border-radius:8px; border:1px solid var(--border); min-width: 300px;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>Total H.T</span><strong id="t-ht">0.00</strong></div>
-                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>TVA</span><strong id="t-tva">0.00</strong></div>
-                        <div style="display:flex; justify-content:space-between; font-size:1.2em; border-top:2px solid #0f172a; padding-top:10px;"><strong>Total TTC</strong><strong id="t-ttc">0.00</strong></div>
+                    <div style="text-align:right; margin-top:20px;">
+                        <button class="btn btn-outline" onclick="nav(document.getElementById('doc-type').value === 'devis' ? 'devis' : 'factures')">Annuler</button>
+                        <button class="btn btn-success" onclick="saveDocument()"><i class="fas fa-save"></i> Enregistrer le document</button>
                     </div>
                 </div>
-                <div style="text-align:right; margin-top:20px;">
-                    <button class="btn btn-outline" onclick="nav(document.getElementById('doc-type').value === 'devis' ? 'devis' : 'factures')">Annuler</button>
-                    <button class="btn btn-success" onclick="saveDocument()"><i class="fas fa-save"></i> Enregistrer le document</button>
-                </div>
             </div>
-        </div>
 
+        </div>
     </div>
 
     <div id="selection-modal" class="modal-overlay">
@@ -309,14 +342,14 @@
 
             <div class="pdf-boxes-container">
                 <div class="pdf-box-wrapper">
-                    <div class="pdf-box-title">Émetteur</div>
+                    <div class="pdf-box-title">Emetteur</div>
                     <div class="pdf-box">
                         <strong id="p-f-name"></strong><br>
                         <span id="p-f-address"></span>
                     </div>
                 </div>
                 <div class="pdf-box-wrapper">
-                    <div class="pdf-box-title">À l'attention de :</div>
+                    <div class="pdf-box-title">A l'attention de :</div>
                     <div class="pdf-box">
                         <strong id="p-client" style="text-transform: uppercase;"></strong><br>
                         <span id="p-client-details" style="white-space: pre-wrap;"></span>
@@ -386,6 +419,37 @@
         let companySettings = {};
         let currentDevisToInvoice = null;
         let currentDevisLinesToInvoice = [];
+
+        // ================= SYSTÈME DE CONNEXION (SANS SAUVEGARDE) =================
+        window.checkPassword = async function() {
+            const pwd = document.getElementById('app-password').value;
+            if (pwd === '2012') {
+                // Disparition de l'écran de connexion
+                document.getElementById('login-screen').style.display = 'none';
+                
+                // Affichage de l'interface de l'application
+                document.getElementById('app-container').style.display = 'flex';
+                
+                // Lancement de Supabase UNIQUEMENT après connexion
+                if(!supabaseClient) {
+                    showError("Le script Supabase n'est pas chargé. Vérifiez votre connexion internet.");
+                    document.getElementById('dashboard').classList.add('active');
+                    return;
+                }
+                try {
+                    const { error } = await supabaseClient.from('parametres_societe').select('id').limit(1);
+                    if(error) throw error;
+                    await loadSettings(); 
+                    nav('dashboard'); 
+                } catch(e) { 
+                    showError("Impossible de se connecter à la base de données. Vérifiez que RLS est désactivé et que la clé est correcte.");
+                    document.getElementById('dashboard').classList.add('active');
+                }
+            } else {
+                document.getElementById('login-error').style.display = 'block';
+                document.getElementById('app-password').value = ''; // Vide le champ
+            }
+        };
 
         // ================= UTILITAIRES =================
         function toast(msg) {
@@ -500,7 +564,7 @@
                 companySettings = data;
                 document.getElementById('s-nom').value = data.nom || ''; document.getElementById('s-tel').value = data.telephone || '';
                 document.getElementById('s-adresse').value = data.adresse || ''; document.getElementById('s-rc').value = data.rc || '';
-                document.getElementById('s-if').value = data.if_tax || ''; document.getElementById('s-ice').value = data.ice || ''; document.getElementById('s-cnss').value = data.cnss || '';
+                document.getElementById('s-if').value = data.if_tax || ''; document.getElementById('s-ice').value = data.ice || '002031081000054'; document.getElementById('s-cnss').value = data.cnss || '';
                 document.getElementById('s-email').value = data.email || '';
                 if(data.logo_base64) { document.getElementById('s-logo-preview').src = data.logo_base64; document.getElementById('s-logo-preview').style.display='block'; }
                 if(data.cachet_base64) { document.getElementById('s-cachet-preview').src = data.cachet_base64; document.getElementById('s-cachet-preview').style.display='block'; }
@@ -792,7 +856,7 @@
             document.getElementById('kpi-ca').innerText = formatMoney(caPer) + ' MAD'; document.getElementById('kpi-encaisse').innerText = formatMoney(enc) + ' MAD'; document.getElementById('kpi-retard').innerText = formatMoney(ret) + ' MAD';
         }
 
-        // ================= PDF (Pied de page strict sur 2 lignes) =================
+        // ================= PDF =================
         window.openPDF = async function(id, type) {
             try {
                 await loadSettings();
@@ -846,23 +910,9 @@
             html2pdf().set(opt).from(element).save().then(() => { toast("Téléchargement réussi !"); element.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)'; });
         };
 
-        // Lancement
-        document.addEventListener('DOMContentLoaded', async () => {
+        // Au lancement on charge juste l'écran de login, rien ne se connecte encore.
+        document.addEventListener('DOMContentLoaded', () => {
             initFilters();
-            if(!supabaseClient) {
-                showError("Le script Supabase n'est pas chargé. Vérifiez votre connexion internet.");
-                document.getElementById('dashboard').classList.add('active');
-                return;
-            }
-            try {
-                const { error } = await supabaseClient.from('parametres_societe').select('id').limit(1);
-                if(error) throw error;
-                await loadSettings(); 
-                nav('dashboard'); 
-            } catch(e) { 
-                showError("Impossible de se connecter à la base de données. Si la clé commence par sb_publishable..., elle pourrait être incorrecte.");
-                document.getElementById('dashboard').classList.add('active');
-            }
         });
     </script>
 </body>
