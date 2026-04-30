@@ -57,22 +57,30 @@
         .preview-actions { background: white; padding: 15px 25px; border-radius: 8px; display: flex; gap: 15px; margin-bottom: 30px; position: sticky; top: 20px; z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
 
         /* =========================================
-           A4 PDF TEMPLATE - REPRODUCTION EXACTE
+           A4 PDF TEMPLATE - DESIGN PREMIUM ET ÉPURÉ
            ========================================= */
         .a4-document {
             width: 210mm; min-height: 297mm; background: #ffffff; padding: 20mm 20mm; margin: 0 auto;
             font-family: 'Arial', Helvetica, sans-serif; color: #000000; box-sizing: border-box; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
-        .pdf-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-        .pdf-boxes-container { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .pdf-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; }
+        .pdf-boxes-container { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .pdf-box-wrapper { width: 48%; }
-        .pdf-box-title { font-weight: bold; font-size: 10pt; margin-bottom: 5px; text-decoration: underline; }
-        .pdf-box { border: 1pt solid #000; padding: 10px; min-height: 80px; font-size: 10pt; line-height: 1.4; }
-        .pdf-table-new { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        .pdf-table-new th, .pdf-table-new td { border: 1pt solid #000; padding: 8px 10px; font-size: 10pt; }
-        .pdf-table-new th { font-weight: bold; text-align: center; }
-        .pdf-table-totals td { font-weight: bold; }
-        .pdf-footer-new { position: absolute; bottom: 15mm; left: 15mm; right: 15mm; text-align: center; font-size: 8pt; line-height: 1.4; color: #000080;}
+        .pdf-box-title { font-weight: bold; font-size: 10pt; margin-bottom: 8px; text-decoration: underline; color: #1e293b; }
+        .pdf-box { border: 1pt solid #475569; padding: 12px; min-height: 85px; font-size: 10pt; line-height: 1.5; color: #0f172a; border-radius: 2px;}
+        
+        .pdf-table-new { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .pdf-table-new th, .pdf-table-new td { border: 1pt solid #cbd5e1; padding: 10px 12px; font-size: 10pt; }
+        .pdf-table-new th { font-weight: bold; text-align: center; background: #f8fafc; color: #1e293b; }
+        .pdf-table-totals td { font-weight: bold; color: #0f172a; }
+        
+        /* Footer Gris et ligne */
+        .pdf-footer-new { 
+            position: absolute; bottom: 15mm; left: 15mm; right: 15mm; text-align: center; 
+            font-size: 8.5pt; line-height: 1.6; color: #64748b; /* Gris */
+            border-top: 1.5pt solid #cbd5e1; /* Grand trait clair au dessus */
+            padding-top: 12px;
+        }
     </style>
 </head>
 <body>
@@ -279,29 +287,60 @@
         </div>
         
         <div id="pdf-export" class="a4-document">
+            
             <div class="pdf-header-top">
-                <div style="text-align: center; width: 250px;"><img id="p-logo" src="" style="max-width: 100%; max-height: 80px; margin-bottom: 5px; display:none;"></div>
-                <div style="text-align: right; font-family: 'Arial', sans-serif; font-size: 10pt; font-weight: bold; padding-top: 10px;">
-                    <span id="p-type-label">Facture</span> N° : <span id="p-ref"></span><br>Date : <span id="p-date-text"></span>
+                <div style="text-align: left; width: 280px;">
+                    <img id="p-logo" src="" style="max-width: 100%; max-height: 90px; margin-bottom: 5px; display:none;">
+                </div>
+                <div style="text-align: right; font-family: 'Arial', sans-serif;">
+                    <h1 id="p-main-title" style="margin: 0 0 10px 0; font-size: 26pt; color: #0f172a; text-transform: uppercase; letter-spacing: 2px;">FACTURE</h1>
+                    <div style="font-size: 11pt; color: #334155; font-weight: bold; margin-bottom: 3px;">N° : <span id="p-ref"></span></div>
+                    <div style="font-size: 11pt; color: #334155;">Date : <span id="p-date-text"></span></div>
                 </div>
             </div>
+
             <div class="pdf-boxes-container">
-                <div class="pdf-box-wrapper"><div class="pdf-box-title">Emetteur</div><div class="pdf-box"><strong id="p-f-name"></strong><br><span id="p-f-address"></span></div></div>
-                <div class="pdf-box-wrapper"><div class="pdf-box-title">A l'intention de :</div><div class="pdf-box"><strong id="p-client" style="text-transform: uppercase;"></strong><br><span id="p-client-details" style="white-space: pre-wrap;"></span></div></div>
+                <div class="pdf-box-wrapper">
+                    <div class="pdf-box-title">Émetteur</div>
+                    <div class="pdf-box">
+                        <strong id="p-f-name"></strong><br>
+                        <span id="p-f-address"></span>
+                    </div>
+                </div>
+                <div class="pdf-box-wrapper">
+                    <div class="pdf-box-title">À l'attention de :</div>
+                    <div class="pdf-box">
+                        <strong id="p-client" style="text-transform: uppercase;"></strong><br>
+                        <span id="p-client-details" style="white-space: pre-wrap;"></span>
+                    </div>
+                </div>
             </div>
+
             <table class="pdf-table-new">
-                <thead><tr><th style="width: 50%; text-align: left;">Désignation</th><th style="width: 20%; text-align: center;">Prix Unitaire</th><th style="width: 10%; text-align: center;">Qté</th><th style="width: 20%; text-align: right;">Total H.T</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th style="width: 50%; text-align: left;">Désignation</th>
+                        <th style="width: 20%; text-align: center;">Prix Unitaire</th>
+                        <th style="width: 10%; text-align: center;">Qté</th>
+                        <th style="width: 20%; text-align: right;">Total H.T</th>
+                    </tr>
+                </thead>
                 <tbody id="p-items"></tbody>
                 <tbody class="pdf-table-totals">
                     <tr><td colspan="3" style="text-align: right; padding-right: 20px;">Total H.T</td><td style="text-align: right;" id="p-tht"></td></tr>
                     <tr><td colspan="3" style="text-align: right; padding-right: 20px;">TVA <span id="p-tva-rate"></span>%</td><td style="text-align: right;" id="p-tva"></td></tr>
-                    <tr><td colspan="3" style="text-align: right; padding-right: 20px;">Total TTC</td><td style="text-align: right;" id="p-tttc"></td></tr>
+                    <tr><td colspan="3" style="text-align: right; padding-right: 20px;">Total TTC</td><td style="text-align: right; font-size: 11pt;" id="p-tttc"></td></tr>
                 </tbody>
             </table>
-            <div style="font-family: 'Arial', sans-serif; font-size: 10pt; line-height: 1.5; margin-top: 15px;">
-                <div id="p-lettres" style="font-weight: bold; margin-bottom: 20px;"></div>
-                <div style="text-align: center; margin-top: 20px;"><img id="p-cachet" src="" style="max-width: 250px; max-height: 120px; object-fit: contain; display:none;"></div>
+
+            <div style="font-family: 'Arial', sans-serif; font-size: 11pt; line-height: 1.6; margin-top: 25px; padding: 15px; background: #f8fafc; border-left: 3px solid #94a3b8;">
+                <span id="p-lettres"></span>
             </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 30px; padding-right: 20px;">
+                <img id="p-cachet" src="" style="max-width: 300px; max-height: 160px; object-fit: contain; display:none;">
+            </div>
+
             <div class="pdf-footer-new">
                 <strong id="p-foot-name"></strong> <span id="p-foot-address"></span><br>
                 RC: <span id="p-foot-rc"></span> IF: <span id="p-foot-if"></span> <span id="p-foot-cnss-container" style="display:none;">CNSS: <span id="p-foot-cnss"></span></span> ICE: <span id="p-foot-ice"></span><br>
@@ -731,7 +770,7 @@
             document.getElementById('kpi-ca').innerText = formatMoney(caPer) + ' MAD'; document.getElementById('kpi-encaisse').innerText = formatMoney(enc) + ' MAD'; document.getElementById('kpi-retard').innerText = formatMoney(ret) + ' MAD';
         }
 
-        // ================= PDF =================
+        // ================= PDF (Gris, Ligne et reformulation) =================
         window.openPDF = async function(id, type) {
             try {
                 await loadSettings();
@@ -744,8 +783,10 @@
                 if(companySettings.logo_base64) { document.getElementById('p-logo').src = companySettings.logo_base64; document.getElementById('p-logo').style.display = 'inline-block'; } else { document.getElementById('p-logo').style.display = 'none'; }
                 if(companySettings.cachet_base64) { document.getElementById('p-cachet').src = companySettings.cachet_base64; document.getElementById('p-cachet').style.display = 'inline-block'; } else { document.getElementById('p-cachet').style.display = 'none'; }
 
-                document.getElementById('p-type-label').innerText = type === 'devis' ? 'Devis' : 'Facture';
-                document.getElementById('p-ref').innerText = doc.ref; document.getElementById('p-date-text').innerText = (type==='devis'?doc.date_devis:doc.date_facture).split('-').reverse().join('/');
+                // Mise à jour du GRAND Titre
+                document.getElementById('p-main-title').innerText = type === 'devis' ? 'DEVIS' : 'FACTURE';
+                document.getElementById('p-ref').innerText = doc.ref; 
+                document.getElementById('p-date-text').innerText = (type==='devis'?doc.date_devis:doc.date_facture).split('-').reverse().join('/');
 
                 document.getElementById('p-f-name').innerText = companySettings.nom; document.getElementById('p-f-address').innerText = companySettings.adresse;
                 document.getElementById('p-client').innerText = doc.clients.nom; document.getElementById('p-client-details').innerText = doc.clients.adresse || '';
@@ -754,10 +795,11 @@
                 lines.forEach(l => { tBody += `<tr><td>${l.designation.replace(/\n/g, '<br>')}</td><td style="text-align:center;">${formatMoney(l.prix_unitaire)}</td><td style="text-align:center;">${l.quantite}</td><td style="text-align:right;">${formatMoney(l.quantite*l.prix_unitaire)}</td></tr>`; });
                 document.getElementById('p-items').innerHTML = tBody;
 
-                document.getElementById('p-tht').innerText = formatMoney(doc.total_ht); document.getElementById('p-tva-rate').innerText = doc.tva_rate; document.getElementById('p-tva').innerText = formatMoney(doc.total_tva); document.getElementById('p-tttc').innerText = formatMoney(doc.total_ttc);
+                document.getElementById('p-tht').innerText = formatMoney(doc.total_ht); document.getElementById('p-tva-rate').innerText = doc.tva_rate; document.getElementById('p-tva').innerText = formatMoney(doc.total_tva); document.getElementById('p-tttc').innerText = formatMoney(doc.total_ttc) + " MAD";
 
-                const phrase = type === 'devis' ? "Le présent devis est arrêté à la somme de :" : "La présente facture est arrêtée à la somme de :";
-                document.getElementById('p-lettres').innerText = phrase + " " + NumberToLetter(doc.total_ttc).toUpperCase() + " dirhams toutes taxes comprises.";
+                // Formulation propre
+                const typeTxt = type === 'devis' ? 'le présent devis' : 'la présente facture';
+                document.getElementById('p-lettres').innerHTML = `Arrêté ${typeTxt} à la somme de :<br> <span style="font-size:12pt; color:#0f172a; text-transform:uppercase;">${NumberToLetter(doc.total_ttc)} DIRHAMS TTC.</span>`;
 
                 document.getElementById('p-foot-name').innerText = companySettings.nom; document.getElementById('p-foot-address').innerText = companySettings.adresse; document.getElementById('p-foot-rc').innerText = companySettings.rc; document.getElementById('p-foot-if').innerText = companySettings.if_tax; document.getElementById('p-foot-ice').innerText = companySettings.ice; document.getElementById('p-foot-phone').innerText = companySettings.telephone;
                 if(companySettings.cnss) { document.getElementById('p-foot-cnss').innerText = companySettings.cnss; document.getElementById('p-foot-cnss-container').style.display='inline'; } else { document.getElementById('p-foot-cnss-container').style.display='none'; }
