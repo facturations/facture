@@ -2,7 +2,7 @@
 <html lang="fr" translate="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="google" content="notranslate">
     <title>Logiciel EPT - Facturation Cloud</title>
 
@@ -24,6 +24,8 @@
             --danger: #dc2626;
             --warning: #f59e0b;
             --muted: #64748b;
+            --sidebar-width: 250px;
+            --header-height: 56px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
@@ -36,6 +38,7 @@
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             z-index: 999999; display: flex; align-items: center; justify-content: center;
+            padding: 20px;
         }
         .login-card {
             background: white; padding: 45px 40px; border-radius: 12px;
@@ -56,11 +59,48 @@
         #app-container { display: none; width: 100%; height: 100%; }
 
         /* =========================================
+           MOBILE HEADER BAR (hidden on desktop)
+           ========================================= */
+        .mobile-header {
+            display: none;
+            position: fixed; top: 0; left: 0; right: 0;
+            height: var(--header-height);
+            background: var(--side);
+            color: white;
+            z-index: 1001;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .mobile-header .mobile-logo { font-weight: 700; font-size: 1.05em; }
+        .mobile-header .mobile-logo small { font-weight: 400; font-size: 0.65em; color: #94a3b8; margin-left: 6px; }
+        .hamburger-btn {
+            background: none; border: none; color: white; font-size: 1.4em;
+            cursor: pointer; padding: 8px 10px; border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .hamburger-btn:hover { background: rgba(255,255,255,0.1); }
+
+        /* =========================================
+           SIDEBAR OVERLAY (mobile backdrop)
+           ========================================= */
+        .sidebar-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 999;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .sidebar-overlay.active { display: block; opacity: 1; }
+
+        /* =========================================
            SIDEBAR
            ========================================= */
         .sidebar {
-            width: 250px; min-width: 250px; background: var(--side); color: #cbd5e1;
-            display: flex; flex-direction: column; z-index: 100;
+            width: var(--sidebar-width); min-width: var(--sidebar-width);
+            background: var(--side); color: #cbd5e1;
+            display: flex; flex-direction: column; z-index: 1000;
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
         }
         .logo-box {
             padding: 22px 20px; text-align: center; background: #020617;
@@ -71,6 +111,7 @@
         .nav-item {
             padding: 14px 20px; cursor: pointer; display: flex; align-items: center;
             gap: 12px; transition: all 0.2s; border-left: 3px solid transparent; font-size: 0.92em;
+            -webkit-tap-highlight-color: transparent;
         }
         .nav-item:hover { background: #1e293b; color: white; }
         .nav-item.active { background: #1e293b; color: white; border-left-color: var(--primary); }
@@ -79,17 +120,17 @@
         /* =========================================
            CONTENU PRINCIPAL
            ========================================= */
-        .main { flex: 1; padding: 30px; overflow-y: auto; position: relative; background: var(--bg); }
+        .main { flex: 1; padding: 30px; overflow-y: auto; position: relative; background: var(--bg); min-width: 0; }
         .section { display: none; animation: fadeIn 0.3s ease; }
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        h1 { font-size: 1.5em; margin-bottom: 20px; color: #0f172a; display: flex; align-items: center; gap: 10px; }
+        h1 { font-size: 1.5em; margin-bottom: 20px; color: #0f172a; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         h1 i { color: var(--primary); }
 
         .card {
             background: white; padding: 20px; border-radius: 10px; border: 1px solid var(--border);
-            margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden;
         }
 
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px; }
@@ -107,6 +148,7 @@
             padding: 9px 18px; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;
             display: inline-flex; align-items: center; gap: 8px; color: white; transition: all 0.2s;
             font-size: 0.88em; font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
         .btn:hover { opacity: 0.9; transform: translateY(-1px); }
         .btn:active { transform: translateY(0); }
@@ -118,13 +160,15 @@
         .btn-outline:hover { background: #f8fafc; }
         .btn-sm { padding: 5px 10px; font-size: 0.82em; }
 
-        table.ui-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.88em; }
-        table.ui-table th, table.ui-table td { padding: 11px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+        /* Table with horizontal scroll wrapper */
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -20px; padding: 0 20px; }
+        table.ui-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.88em; min-width: 600px; }
+        table.ui-table th, table.ui-table td { padding: 11px 10px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
         table.ui-table th { background: #f8fafc; font-weight: 600; color: var(--muted); font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.3px; }
         table.ui-table tr:hover td { background: #f8fafc; }
-        .empty-row td { text-align: center; color: var(--muted); font-style: italic; padding: 30px; }
+        .empty-row td { text-align: center; color: var(--muted); font-style: italic; padding: 30px; white-space: normal; }
 
-        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+        .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; display: inline-block; }
         .bg-gray { background: #f1f5f9; color: #475569; }
         .bg-blue { background: #dbeafe; color: #1e40af; }
         .bg-green { background: #dcfce7; color: #166534; }
@@ -146,15 +190,14 @@
         }
         .kpi-card h3 { font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 8px; }
         .kpi-card h2 { font-size: 1.3em; margin: 0; }
-        .kpi-card .kpi-icon { position: absolute; top: 15px; right: 15px; font-size: 1.5em; opacity: 0.15; }
 
         .search-box { position: relative; }
         .search-box input { padding-left: 36px; }
         .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
 
-        #toast-container { position: fixed; bottom: 30px; right: 30px; z-index: 99999; }
+        #toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 99999; left: 20px; }
         .toast {
-            background: #0f172a; color: white; padding: 14px 24px; border-radius: 8px; margin-top: 10px;
+            background: #0f172a; color: white; padding: 14px 20px; border-radius: 8px; margin-top: 10px;
             font-size: 0.88em; box-shadow: 0 8px 20px rgba(0,0,0,0.2); animation: slideIn 0.3s ease;
             display: flex; align-items: center; gap: 10px; max-width: 400px;
         }
@@ -166,19 +209,19 @@
         #error-banner {
             display: none; background: #fef2f2; color: var(--danger); padding: 16px 20px;
             margin-bottom: 20px; border-radius: 8px; font-weight: 500; font-size: 0.88em;
-            border: 1px solid #fecaca; display: none; align-items: center; gap: 12px;
+            border: 1px solid #fecaca; align-items: center; gap: 12px;
         }
         #error-banner i { font-size: 1.2em; }
 
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.85); z-index: 9999; flex-direction: column;
-            align-items: center; padding: 40px 20px; overflow-y: auto; backdrop-filter: blur(4px);
+            align-items: center; padding: 20px 10px; overflow-y: auto; backdrop-filter: blur(4px);
         }
         .preview-actions {
-            background: white; padding: 15px 25px; border-radius: 10px; display: flex; gap: 12px;
-            margin-bottom: 30px; position: sticky; top: 20px; z-index: 10000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            background: white; padding: 12px 20px; border-radius: 10px; display: flex; gap: 10px;
+            margin-bottom: 20px; position: sticky; top: 10px; z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); flex-wrap: wrap; justify-content: center;
         }
 
         .loader { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 0.6s linear infinite; }
@@ -191,6 +234,7 @@
             width: 210mm; min-height: 297mm; background: #ffffff; padding: 18mm 18mm;
             margin: 0 auto; font-family: 'Arial', Helvetica, sans-serif; color: #000000;
             box-sizing: border-box; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            flex-shrink: 0;
         }
         .pdf-header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; }
         .pdf-boxes-container { display: flex; justify-content: space-between; margin-bottom: 18px; }
@@ -204,25 +248,166 @@
         .pdf-table-new th, .pdf-table-new td { border: 1.5pt solid #94a3b8; padding: 10px 12px; font-size: 10pt; }
         .pdf-table-new th { font-weight: bold; text-align: center; background: #f8fafc; color: #1e293b; }
         .pdf-table-totals td { font-weight: bold; color: #0f172a; }
+        .pdf-address { font-size: 10px; line-height: 1.4; color: #334155; }
         .pdf-footer-new {
             position: absolute; bottom: 10mm; left: 15mm; right: 15mm; text-align: center;
             font-size: 8pt; line-height: 1.4; color: #64748b;
             border-top: 1.5pt solid #cbd5e1; padding-top: 8px;
         }
+        .pdf-footer-new .pdf-address { font-size: 8pt; }
+
+        /* Status select styling */
+        .status-select {
+            display: inline-block; width: auto; padding: 4px 8px; font-size: 0.82em;
+            border: 1px solid var(--border); border-radius: 4px; cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
 
         /* =========================================
-           RESPONSIVE
+           RESPONSIVE - TABLETTE (max-width: 1024px)
            ========================================= */
-        @media (max-width: 900px) {
-            .sidebar { width: 60px; min-width: 60px; }
-            .sidebar .logo-box { font-size: 0.9em; padding: 15px 5px; }
-            .sidebar .logo-box small { display: none; }
-            .sidebar .nav-item span { display: none; }
-            .sidebar .nav-item { justify-content: center; padding: 14px 10px; }
-            .sidebar .nav-item i { margin: 0; }
-            .main { padding: 15px; }
-            .filter-bar { flex-direction: column; align-items: stretch; }
-            .filter-controls { flex-direction: column; }
+        @media (max-width: 1024px) {
+            .main { padding: 20px; }
+            .kpi-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+            .filter-controls > div { min-width: 130px; }
+        }
+
+        /* =========================================
+           RESPONSIVE - MOBILE (max-width: 768px)
+           ========================================= */
+        @media (max-width: 768px) {
+            :root { --sidebar-width: 280px; }
+
+            /* Afficher le header mobile */
+            .mobile-header { display: flex; }
+
+            /* Sidebar : position fixed, masquee par defaut */
+            .sidebar {
+                position: fixed;
+                top: 0; left: 0; bottom: 0;
+                transform: translateX(-100%);
+                z-index: 1001;
+                box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+            }
+            .sidebar.sidebar-open { transform: translateX(0); }
+
+            /* Decaler le contenu principal sous le header mobile */
+            .main {
+                padding: 16px;
+                padding-top: calc(var(--header-height) + 16px);
+                width: 100%;
+            }
+
+            #app-container { flex-direction: column; }
+
+            /* KPI en colonne sur mobile */
+            .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+
+            /* Filter bar empilee */
+            .filter-bar {
+                flex-direction: column; align-items: stretch; padding: 12px 15px; gap: 12px;
+            }
+            .filter-controls {
+                flex-direction: column; gap: 10px; width: 100%;
+            }
+            .filter-controls > div { min-width: 0; width: 100%; }
+            .filter-controls .btn { width: 100%; justify-content: center; }
+
+            /* Grid en colonne */
+            .grid { grid-template-columns: 1fr; }
+            .grid-2 { grid-template-columns: 1fr; }
+
+            h1 { font-size: 1.2em; margin-bottom: 15px; }
+
+            .card { padding: 15px; border-radius: 8px; }
+
+            /* Boutons plus grands et accessibles */
+            .btn { padding: 11px 18px; font-size: 0.9em; }
+            .btn-sm { padding: 8px 12px; font-size: 0.85em; }
+
+            /* Tables scrollables */
+            .table-responsive { margin: 0 -15px; padding: 0 15px; }
+            table.ui-table { font-size: 0.82em; }
+            table.ui-table th, table.ui-table td { padding: 8px 6px; }
+
+            /* Login */
+            .login-card { padding: 30px 25px; }
+            .login-card .login-icon { font-size: 2.2em; }
+            .login-card h2 { font-size: 1.3em; }
+            .login-card input { font-size: 1.2em; letter-spacing: 6px; padding: 12px; }
+
+            /* Modal overlay plus compact */
+            .modal-overlay { padding: 10px 8px; }
+
+            /* PDF modal : scroll horizontal pour voir le document */
+            #pdf-modal { overflow: auto; }
+            .preview-actions { padding: 10px 15px; margin-bottom: 15px; top: 5px; }
+            .preview-actions .btn { font-size: 0.82em; padding: 9px 14px; }
+
+            /* A4 document scrollable dans la modal */
+            #pdf-export.a4-document {
+                transform: scale(0.55);
+                transform-origin: top left;
+                margin-bottom: -120mm;
+            }
+
+            /* Toast */
+            #toast-container { bottom: 15px; right: 15px; left: 15px; }
+            .toast { max-width: 100%; font-size: 0.82em; padding: 12px 16px; }
+
+            /* Search box pleine largeur */
+            .search-box input { width: 100% !important; }
+
+            /* Settings file inputs */
+            #settings .grid-2 + div div[style*="display:flex"] { flex-direction: column; gap: 10px; }
+            #settings input[type="file"] { max-width: 100%; }
+        }
+
+        /* =========================================
+           RESPONSIVE - PETIT MOBILE (max-width: 480px)
+           ========================================= */
+        @media (max-width: 480px) {
+            .kpi-grid { grid-template-columns: 1fr; gap: 8px; }
+            .kpi-card { padding: 15px; }
+            .kpi-card h2 { font-size: 1.1em; }
+            .kpi-card h3 { font-size: 0.72em; }
+
+            .main { padding: 10px; padding-top: calc(var(--header-height) + 10px); }
+
+            .card { padding: 12px; margin-bottom: 12px; }
+
+            h1 { font-size: 1.05em; margin-bottom: 12px; }
+
+            .filter-bar { padding: 10px 12px; }
+
+            .btn { padding: 10px 14px; font-size: 0.85em; gap: 6px; }
+
+            /* Login encore plus compact */
+            .login-card { padding: 25px 20px; }
+            .login-card .login-icon { font-size: 1.8em; }
+            .login-card h2 { font-size: 1.2em; }
+            .login-card p { font-size: 0.82em; margin-bottom: 18px; }
+            .login-card input { font-size: 1em; letter-spacing: 5px; padding: 10px; }
+
+            /* A4 encore plus petit */
+            #pdf-export.a4-document {
+                transform: scale(0.42);
+                margin-bottom: -160mm;
+            }
+
+            /* Modal selection */
+            #selection-modal .card { margin-top: 10px; padding: 12px; }
+
+            /* Doc editor totals block */
+            #doc-editor div[style*="min-width:300px"] { min-width: 0 !important; width: 100%; }
+        }
+
+        /* =========================================
+           RESPONSIVE - GRAND ECRAN (min-width: 1400px)
+           ========================================= */
+        @media (min-width: 1400px) {
+            .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+            .main { padding: 35px; }
         }
     </style>
 </head>
@@ -248,11 +433,23 @@
     </div>
 
     <!-- =========================================
+         HEADER MOBILE
+         ========================================= -->
+    <div class="mobile-header">
+        <button class="hamburger-btn" onclick="toggleMobileMenu()"><i class="fas fa-bars"></i></button>
+        <div class="mobile-logo">EPT Logiciel<small>Facturation</small></div>
+        <div style="width:42px;"></div>
+    </div>
+
+    <!-- =========================================
          APPLICATION
          ========================================= -->
     <div id="app-container">
 
-        <div class="sidebar">
+        <!-- Sidebar overlay (backdrop mobile) -->
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeMobileMenu()"></div>
+
+        <div class="sidebar" id="sidebar">
             <div class="logo-box">EPT Logiciel<small>Facturation Cloud</small></div>
             <div class="nav-item active" onclick="nav('dashboard', this)"><i class="fas fa-chart-pie"></i> <span>Tableau de bord</span></div>
             <div class="nav-item" onclick="nav('devis', this)"><i class="fas fa-file-alt"></i> <span>Devis</span></div>
@@ -335,16 +532,18 @@
                         <div><label>Telephone</label><input type="text" id="c-tel" placeholder="0600000000"></div>
                     </div>
                     <div style="margin-top:10px;"><label>Adresse detaillee</label><textarea id="c-adresse" rows="2" placeholder="Adresse complete, ICE, IF..."></textarea></div>
-                    <div style="margin-top:15px; display:flex; gap:10px;">
+                    <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
                         <button class="btn btn-success" onclick="saveClient()"><i class="fas fa-save"></i> Enregistrer</button>
                         <button class="btn btn-outline" onclick="closeClientForm()"><i class="fas fa-times"></i> Annuler</button>
                     </div>
                 </div>
                 <div class="card">
-                    <table class="ui-table">
-                        <thead><tr><th>Nom</th><th>Email</th><th>Telephone</th><th>Adresse</th><th style="width:120px;">Actions</th></tr></thead>
-                        <tbody id="clients-list"></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="ui-table">
+                            <thead><tr><th>Nom</th><th>Email</th><th>Telephone</th><th>Adresse</th><th style="width:120px;">Actions</th></tr></thead>
+                            <tbody id="clients-list"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -363,10 +562,12 @@
                     </div>
                 </div>
                 <div class="card">
-                    <table class="ui-table">
-                        <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Statut</th><th style="width:200px;">Actions</th></tr></thead>
-                        <tbody id="devis-list"></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="ui-table">
+                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Statut</th><th style="width:200px;">Actions</th></tr></thead>
+                            <tbody id="devis-list"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -385,10 +586,12 @@
                     </div>
                 </div>
                 <div class="card">
-                    <table class="ui-table">
-                        <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Reste du</th><th>Statut</th><th style="width:200px;">Actions</th></tr></thead>
-                        <tbody id="factures-list"></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="ui-table">
+                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Reste du</th><th>Statut</th><th style="width:200px;">Actions</th></tr></thead>
+                            <tbody id="factures-list"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -416,16 +619,18 @@
                         </div>
                         <div><label>Reference (N Cheque...)</label><input type="text" id="pay-ref" placeholder="Optionnel"></div>
                     </div>
-                    <div style="margin-top:15px; display:flex; gap:10px;">
+                    <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
                         <button class="btn btn-success" onclick="savePayment()"><i class="fas fa-check"></i> Valider le paiement</button>
                         <button class="btn btn-outline" onclick="document.getElementById('pay-form').style.display='none'"><i class="fas fa-times"></i> Annuler</button>
                     </div>
                 </div>
                 <div class="card">
-                    <table class="ui-table">
-                        <thead><tr><th>Facture</th><th>Date</th><th>Mode</th><th>Reference</th><th>Montant</th><th style="width:80px;">Actions</th></tr></thead>
-                        <tbody id="paiements-list"></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="ui-table">
+                            <thead><tr><th>Facture</th><th>Date</th><th>Mode</th><th>Reference</th><th>Montant</th><th style="width:80px;">Actions</th></tr></thead>
+                            <tbody id="paiements-list"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -439,20 +644,20 @@
                     <div class="grid-2" style="margin-bottom:30px;">
                         <div>
                             <label>Logo de l'entreprise</label>
-                            <div style="display:flex; gap:15px; align-items:center; margin-bottom:10px;">
+                            <div style="display:flex; gap:15px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
                                 <div style="width:150px; height:80px; border:1px dashed #94a3b8; display:flex; align-items:center; justify-content:center; background:#f8fafc; border-radius:6px;">
                                     <img id="s-logo-preview" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.style.display='none';">
                                 </div>
-                                <input type="file" id="s-logo" accept="image/*" onchange="previewImage(event, 's-logo-preview')">
+                                <input type="file" id="s-logo" accept="image/*" onchange="previewImage(event, 's-logo-preview')" style="max-width:220px;">
                             </div>
                         </div>
                         <div>
                             <label>Cachet et Signature</label>
-                            <div style="display:flex; gap:15px; align-items:center; margin-bottom:10px;">
+                            <div style="display:flex; gap:15px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
                                 <div style="width:150px; height:80px; border:1px dashed #94a3b8; display:flex; align-items:center; justify-content:center; background:#f8fafc; border-radius:6px;">
                                     <img id="s-cachet-preview" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.style.display='none';">
                                 </div>
-                                <input type="file" id="s-cachet" accept="image/*" onchange="previewImage(event, 's-cachet-preview')">
+                                <input type="file" id="s-cachet" accept="image/*" onchange="previewImage(event, 's-cachet-preview')" style="max-width:220px;">
                             </div>
                         </div>
                     </div>
@@ -493,15 +698,17 @@
                         <div><label>Date</label><input type="date" id="doc-date"></div>
                     </div>
                     <h3 style="margin-top:25px; margin-bottom:10px;"><i class="fas fa-list"></i> Prestations</h3>
-                    <table class="ui-table">
-                        <thead><tr><th style="width:55%;">Designation</th><th style="width:15%;">Qte</th><th style="width:20%;">Prix U. (MAD)</th><th style="width:10%;">Total</th><th style="width:50px;"></th></tr></thead>
-                        <tbody id="doc-lines"></tbody>
-                    </table>
+                    <div class="table-responsive">
+                        <table class="ui-table" style="min-width:500px;">
+                            <thead><tr><th style="width:55%;">Designation</th><th style="width:15%;">Qte</th><th style="width:20%;">Prix U. (MAD)</th><th style="width:10%;">Total</th><th style="width:50px;"></th></tr></thead>
+                            <tbody id="doc-lines"></tbody>
+                        </table>
+                    </div>
                     <button class="btn btn-outline" style="margin-top:10px;" onclick="addDocLine()"><i class="fas fa-plus"></i> Ajouter ligne</button>
 
                     <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:30px; border-top:1px solid var(--border); padding-top:20px; flex-wrap:wrap; gap:20px;">
                         <div style="min-width:120px;"><label>TVA (%)</label><input type="number" id="doc-tva-rate" value="20" style="width:100px;" oninput="calcTotal()"></div>
-                        <div style="background:#f8fafc; padding:20px; border-radius:10px; border:1px solid var(--border); min-width:300px;">
+                        <div class="totals-block" style="background:#f8fafc; padding:20px; border-radius:10px; border:1px solid var(--border); min-width:280px; flex:1; max-width:400px;">
                             <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>Total H.T</span><strong id="t-ht">0,00</strong></div>
                             <div style="display:flex; justify-content:space-between; margin-bottom:10px;"><span>TVA</span><strong id="t-tva">0,00</strong></div>
                             <div style="display:flex; justify-content:space-between; font-size:1.2em; border-top:2px solid #0f172a; padding-top:10px; margin-top:5px;">
@@ -509,7 +716,7 @@
                             </div>
                         </div>
                     </div>
-                    <div style="text-align:right; margin-top:20px; display:flex; gap:10px; justify-content:flex-end;">
+                    <div style="text-align:right; margin-top:20px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
                         <button class="btn btn-outline" onclick="cancelDocEditor()"><i class="fas fa-times"></i> Annuler</button>
                         <button class="btn btn-success" onclick="saveDocument()"><i class="fas fa-save"></i> Enregistrer le document</button>
                     </div>
@@ -523,11 +730,11 @@
          MODAL SELECTION LIGNES (FACTURATION PARTIELLE)
          ========================================= -->
     <div id="selection-modal" class="modal-overlay">
-        <div class="card" style="width:650px; max-width:95%; margin-top:40px;">
+        <div class="card" style="width:650px; max-width:95%; margin-top:20px;">
             <h3 style="margin-bottom:20px;"><i class="fas fa-check-square"></i> Selection des prestations a facturer</h3>
             <p style="margin-bottom:15px; font-size:0.88em; color:var(--muted);">Cochez les elements du devis que vous souhaitez inclure dans cette facture :</p>
             <div id="selection-list" style="max-height:350px; overflow-y:auto; margin-bottom:20px; border:1px solid var(--border); border-radius:6px; padding:5px;"></div>
-            <div style="text-align:right; display:flex; gap:10px; justify-content:flex-end;">
+            <div style="text-align:right; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
                 <button class="btn btn-outline" onclick="document.getElementById('selection-modal').style.display='none'"><i class="fas fa-times"></i> Annuler</button>
                 <button class="btn btn-primary" onclick="confirmPartialInvoice()"><i class="fas fa-file-invoice"></i> Generer la facture</button>
             </div>
@@ -560,14 +767,14 @@
                     <div class="pdf-box-title">Emetteur</div>
                     <div class="pdf-box">
                         <strong id="p-f-name"></strong><br>
-                        <span id="p-f-address"></span>
+                        <span id="p-f-address" class="pdf-address"></span>
                     </div>
                 </div>
                 <div class="pdf-box-wrapper">
                     <div class="pdf-box-title">A l'attention de :</div>
                     <div class="pdf-box">
                         <strong id="p-client" style="text-transform:uppercase;"></strong><br>
-                        <span id="p-client-details" style="white-space:pre-wrap;"></span>
+                        <span id="p-client-details" class="pdf-address" style="white-space:pre-wrap;"></span>
                     </div>
                 </div>
             </div>
@@ -576,9 +783,9 @@
                 <thead>
                     <tr>
                         <th style="width:50%; text-align:left;">Designation</th>
-                        <th style="width:20%; text-align:center;">Prix Unitaire</th>
+                        <th style="width:20%; text-align:center;">Prix Unitaire (MAD)</th>
                         <th style="width:10%; text-align:center;">Qte</th>
-                        <th style="width:20%; text-align:right;">Total H.T</th>
+                        <th style="width:20%; text-align:right;">Total H.T (MAD)</th>
                     </tr>
                 </thead>
                 <tbody id="p-items"></tbody>
@@ -600,7 +807,7 @@
             <div class="pdf-footer-new">
                 <div style="margin-bottom:4px;">
                     <strong id="p-foot-name" style="font-size:9pt; color:#1e293b;"></strong> -
-                    <span id="p-foot-address"></span> -
+                    <span id="p-foot-address" class="pdf-address"></span> -
                     <strong>Email:</strong> <span id="p-foot-email"></span>
                 </div>
                 <div>
@@ -655,8 +862,8 @@
     /** Afficher un toast de notification */
     function toast(msg, type) {
         type = type || 'info';
-        const iconMap = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
-        const t = document.createElement('div');
+        var iconMap = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+        var t = document.createElement('div');
         t.className = 'toast toast-' + type;
         t.innerHTML = '<i class="fas ' + (iconMap[type]||iconMap.info) + '"></i> ' + escapeHTML(msg);
         document.getElementById('toast-container').appendChild(t);
@@ -821,6 +1028,32 @@
     }
 
     // ================================================================
+    // MOBILE MENU
+    // ================================================================
+    function toggleMobileMenu() {
+        var sidebar = document.getElementById('sidebar');
+        var overlay = document.getElementById('sidebar-overlay');
+        if (sidebar.classList.contains('sidebar-open')) {
+            closeMobileMenu();
+        } else {
+            sidebar.classList.add('sidebar-open');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeMobileMenu() {
+        var sidebar = document.getElementById('sidebar');
+        var overlay = document.getElementById('sidebar-overlay');
+        sidebar.classList.remove('sidebar-open');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    window.toggleMobileMenu = toggleMobileMenu;
+    window.closeMobileMenu = closeMobileMenu;
+
+    // ================================================================
     // SYSTEME DE CONNEXION
     // ================================================================
     window.checkPassword = async function() {
@@ -865,6 +1098,9 @@
     // NAVIGATION
     // ================================================================
     window.nav = async function(sectionId, navElement) {
+        // Fermer le menu mobile si ouvert
+        closeMobileMenu();
+
         // Desactiver toutes les sections et onglets
         document.querySelectorAll('.section').forEach(function(el) { el.classList.remove('active'); });
         document.querySelectorAll('.nav-item').forEach(function(el) { el.classList.remove('active'); });
@@ -1284,7 +1520,7 @@
                 var acts = '<button class="btn btn-outline btn-sm" onclick="openPDF(\'' + escapeHTML(d.id) + '\', \'devis\')" title="Apercu / PDF"><i class="fas fa-print"></i></button> ';
 
                 if (d.statut !== 'Facture' && d.statut !== 'Factur\u00e9') {
-                    acts += '<select class="status-select" onchange="updateStatus(\'devis\', \'' + escapeHTML(d.id) + '\', this.value)" style="display:inline-block; width:auto; padding:4px 8px; font-size:0.82em; border:1px solid var(--border); border-radius:4px; cursor:pointer;">' +
+                    acts += '<select class="status-select" onchange="updateStatus(\'devis\', \'' + escapeHTML(d.id) + '\', this.value)">' +
                         '<option value="" disabled selected>Statut</option>' +
                         '<option value="Envoy\u00e9">Envoye</option>' +
                         '<option value="Valid\u00e9">Valide</option>' +
@@ -1801,7 +2037,7 @@
             document.getElementById('p-tht').innerText = formatMoney(doc.total_ht);
             document.getElementById('p-tva-rate').innerText = doc.tva_rate;
             document.getElementById('p-tva').innerText = formatMoney(doc.total_tva);
-            document.getElementById('p-tttc').innerText = formatMoney(doc.total_ttc) + ' MAD';
+            document.getElementById('p-tttc').innerText = formatMoney(doc.total_ttc);
 
             // Montant en lettres
             var typeTxt = type === 'devis' ? 'le present devis' : 'la presente facture';
@@ -1837,7 +2073,11 @@
 
         var element = document.getElementById('pdf-export');
         var originalShadow = element.style.boxShadow;
+        var originalTransform = element.style.transform;
+        var originalMarginBottom = element.style.marginBottom;
         element.style.boxShadow = 'none';
+        element.style.transform = 'none';
+        element.style.marginBottom = '0';
 
         var refText = document.getElementById('p-ref').innerText || 'document';
         var prefix = currentPdfType === 'devis' ? 'DV' : 'FA';
@@ -1854,9 +2094,13 @@
         html2pdf().set(opt).from(element).save().then(function() {
             toast('PDF telecharge !', 'success');
             element.style.boxShadow = originalShadow;
+            element.style.transform = originalTransform;
+            element.style.marginBottom = originalMarginBottom;
         }).catch(function(err) {
             toast('Erreur generation PDF', 'error');
             element.style.boxShadow = originalShadow;
+            element.style.transform = originalTransform;
+            element.style.marginBottom = originalMarginBottom;
         });
     };
 
