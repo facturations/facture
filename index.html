@@ -248,13 +248,16 @@
         .pdf-table-new th, .pdf-table-new td { border: 1.5pt solid #94a3b8; padding: 10px 12px; font-size: 10pt; }
         .pdf-table-new th { font-weight: bold; text-align: center; background: #f8fafc; color: #1e293b; }
         .pdf-table-totals td { font-weight: bold; color: #0f172a; }
-        .pdf-address { font-size: 8px; line-height: 1.2; margin-top: 2px; color: #334155; }
+        .pdf-company-name { font-size: 10px; font-weight: bold; line-height: 1.25; margin-bottom: 2px; }
+        .pdf-company-address { font-size: 10px; line-height: 1.25; margin-top: 0; }
+        .pdf-client-name { font-size: 10px; font-weight: bold; line-height: 1.25; margin-bottom: 2px; text-transform: uppercase; }
+        .pdf-address { font-size: 10px; line-height: 1.25; margin-top: 0; }
         .pdf-footer-new {
             position: absolute; bottom: 10mm; left: 15mm; right: 15mm; text-align: center;
             font-size: 8pt; line-height: 1.4; color: #64748b;
             border-top: 1.5pt solid #cbd5e1; padding-top: 8px;
         }
-        .pdf-footer-new .pdf-address { font-size: 8px; }
+        .pdf-footer-new .pdf-address { font-size: 8pt; }
 
         /* Status select styling */
         .status-select {
@@ -766,14 +769,14 @@
                 <div class="pdf-box-wrapper">
                     <div class="pdf-box-title">Émetteur</div>
                     <div class="pdf-box">
-                        <strong id="p-f-name"></strong><br>
-                        <span id="p-f-address" class="pdf-address"></span>
+                        <div id="p-f-name" class="pdf-company-name"></div>
+                        <span id="p-f-address" class="pdf-company-address"></span>
                     </div>
                 </div>
                 <div class="pdf-box-wrapper">
                     <div class="pdf-box-title">A l'attention de :</div>
                     <div class="pdf-box">
-                        <strong id="p-client" style="text-transform:uppercase;"></strong><br>
+                        <div id="p-client" class="pdf-client-name"></div>
                         <span id="p-client-details" class="pdf-address" style="white-space:pre-wrap;"></span>
                     </div>
                 </div>
@@ -1061,7 +1064,7 @@
         var errorEl = document.getElementById('login-error');
         var connectingEl = document.getElementById('login-connecting');
 
-        if (pwd !== '2012') {
+        if (pwd !== '0000') {
             errorEl.style.display = 'block';
             connectingEl.style.display = 'none';
             document.getElementById('app-password').value = '';
