@@ -231,7 +231,7 @@
            A4 PDF TEMPLATE
            ========================================= */
         .a4-document {
-            width: 210mm; min-height: 297mm; background: #ffffff; padding: 18mm 18mm;
+            width: 210mm; min-height: 297mm; background: #ffffff; padding: 15mm 15mm;
             margin: 0 auto; font-family: 'Arial', Helvetica, sans-serif; color: #000000;
             box-sizing: border-box; position: relative; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             flex-shrink: 0;
@@ -2071,40 +2071,74 @@
         }
     };
 
-    window.downloadPDF = function() {
-        toast('Génération du PDF...', 'info');
+    window.downloadPDF = async function() {
+        try {
+            toast('Génération du PDF...', 'info');
 
-        var element = document.getElementById('pdf-export');
-        var originalShadow = element.style.boxShadow;
-        var originalTransform = element.style.transform;
-        var originalMarginBottom = element.style.marginBottom;
-        element.style.boxShadow = 'none';
-        element.style.transform = 'none';
-        element.style.marginBottom = '0';
+            var element = document.getElementById('pdf-export');
+            var refText = document.getElementById('p-ref').innerText || 'document';
+            var prefix = currentPdfType === 'devis' ? 'DV' : 'FA';
+            var filename = prefix + '-' + refText + '.pdf';
 
-        var refText = document.getElementById('p-ref').innerText || 'document';
-        var prefix = currentPdfType === 'devis' ? 'DV' : 'FA';
-        var filename = prefix + '-' + refText + '.pdf';
+            // Sauvegarder les styles originaux
+            var originalShadow = element.style.boxShadow;
+            var originalTransform = element.style.transform;
+            var originalMarginBottom = element.style.marginBottom;
 
-        var opt = {
-            margin: 0,
-            filename: filename,
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 3, useCORS: true, logging: false },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
+            // Enlever ombre et transformation pendant la capture
+            element.style.boxShadow = 'none';
+            element.style.transform = 'none';
+            element.style.marginBottom = '0';
 
-        html2pdf().set(opt).from(element).save().then(function() {
-            toast('PDF téléchargé !', 'success');
+            var opt = {
+                margin: 0,
+                filename: filename,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    backgroundColor: '#ffffff'
+                },
+                jsPDF: {
+                    unit: 'mm',
+                    format: 'a4',
+                    orientation: 'portrait',
+                    compress: true
+                }
+            };
+
+            var worker = html2pdf().set(opt).from(element).toPdf();
+            var pdf = await worker.get('pdf');
+
+            var totalPages = pdf.internal.getNumberOfPages();
+
+            if (totalPages > 1) {
+                for (var i = totalPages; i > 1; i--) {
+                    pdf.deletePage(i);
+                }
+            }
+
+            pdf.save(filename);
+
+            // Restaurer les styles originaux
             element.style.boxShadow = originalShadow;
             element.style.transform = originalTransform;
             element.style.marginBottom = originalMarginBottom;
-        }).catch(function(err) {
-            toast('Erreur génération PDF', 'error');
-            element.style.boxShadow = originalShadow;
-            element.style.transform = originalTransform;
-            element.style.marginBottom = originalMarginBottom;
-        });
+
+            toast('PDF téléchargé avec succès.', 'success');
+        } catch (error) {
+            console.error('Erreur PDF:', error);
+            var el = document.getElementById('pdf-export');
+            if (el) {
+                el.style.boxShadow = '';
+                el.style.transform = '';
+                el.style.marginBottom = '';
+            }
+            toast('Erreur lors de la génération du PDF.', 'error');
+        }
     };
 
     // ================================================================
