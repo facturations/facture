@@ -420,14 +420,14 @@
         <div class="login-card">
             <div class="login-icon"><i class="fas fa-shield-alt"></i></div>
             <h2>EPT Facturation</h2>
-            <p>Acces securise - Veuillez entrer votre code d'acces</p>
+            <p>Accès sécurisé - Veuillez entrer votre code d'accès</p>
             <input type="password" id="app-password" placeholder="Code" maxlength="10"
                    onkeydown="if(event.key==='Enter')checkPassword()" autocomplete="off">
             <button class="btn btn-primary" style="width:100%; margin-top:20px; justify-content:center; font-size:1em; padding:13px;"
                     onclick="checkPassword()">
                 <i class="fas fa-sign-in-alt"></i> Se connecter
             </button>
-            <div id="login-error" class="login-error"><i class="fas fa-exclamation-circle"></i> Code incorrect. Reessayez.</div>
+            <div id="login-error" class="login-error"><i class="fas fa-exclamation-circle"></i> Code incorrect. Réessayez.</div>
             <div id="login-connecting" class="login-connecting"><i class="fas fa-spinner fa-spin"></i> Connexion en cours...</div>
         </div>
     </div>
@@ -456,14 +456,14 @@
             <div class="nav-item" onclick="nav('factures', this)"><i class="fas fa-file-invoice"></i> <span>Factures</span></div>
             <div class="nav-item" onclick="nav('paiements', this)"><i class="fas fa-money-bill-wave"></i> <span>Paiements</span></div>
             <div class="nav-item" onclick="nav('clients', this)"><i class="fas fa-users"></i> <span>Clients</span></div>
-            <div class="nav-item" onclick="nav('settings', this)"><i class="fas fa-cog"></i> <span>Parametres</span></div>
+            <div class="nav-item" onclick="nav('settings', this)"><i class="fas fa-cog"></i> <span>Paramètres</span></div>
         </div>
 
         <div class="main">
             <div id="error-banner">
                 <i class="fas fa-exclamation-triangle"></i>
                 <div>
-                    <strong>Probleme de connexion a la base de donnees</strong><br>
+                    <strong>Problème de connexion à la base de données</strong><br>
                     <span id="error-msg"></span>
                 </div>
             </div>
@@ -483,15 +483,15 @@
                 </div>
                 <div class="kpi-grid">
                     <div class="kpi-card" style="border-left: 4px solid var(--info);">
-                        <h3>C.A Facture (Periode)</h3>
+                        <h3>C.A Facturé (Période)</h3>
                         <h2 id="kpi-ca" style="color:var(--primary);">0,00 MAD</h2>
                     </div>
                     <div class="kpi-card" style="border-left: 4px solid var(--success);">
-                        <h3>Montant Encaisse (Periode)</h3>
+                        <h3>Montant Encaissé (Période)</h3>
                         <h2 id="kpi-encaisse" style="color:var(--success);">0,00 MAD</h2>
                     </div>
                     <div class="kpi-card" style="border-left: 4px solid var(--danger);">
-                        <h3>Reste a recouvrer (Total)</h3>
+                        <h3>Reste à recouvrer (Total)</h3>
                         <h2 id="kpi-retard" style="color:var(--danger);">0,00 MAD</h2>
                     </div>
                     <div class="kpi-card" style="border-left: 4px solid var(--warning);">
@@ -503,7 +503,7 @@
                         <h2 id="kpi-factures" style="color:var(--primary);">0</h2>
                     </div>
                     <div class="kpi-card" style="border-left: 4px solid var(--danger);">
-                        <h3>Factures Impayees</h3>
+                        <h3>Factures Impayées</h3>
                         <h2 id="kpi-impayees" style="color:var(--danger);">0</h2>
                     </div>
                 </div>
@@ -527,11 +527,11 @@
                     <h3 id="client-form-title" style="margin-bottom:15px;"><i class="fas fa-user-plus"></i> Nouveau Client</h3>
                     <input type="hidden" id="c-id">
                     <div class="grid">
-                        <div><label>Nom de la societe / Client (*)</label><input type="text" id="c-nom" placeholder="Nom obligatoire"></div>
+                        <div><label>Nom de la société / Client (*)</label><input type="text" id="c-nom" placeholder="Nom obligatoire"></div>
                         <div><label>Email</label><input type="email" id="c-email" placeholder="email@exemple.com"></div>
-                        <div><label>Telephone</label><input type="text" id="c-tel" placeholder="0600000000"></div>
+                        <div><label>Téléphone</label><input type="text" id="c-tel" placeholder="0600000000"></div>
                     </div>
-                    <div style="margin-top:10px;"><label>Adresse detaillee</label><textarea id="c-adresse" rows="2" placeholder="Adresse complete, ICE, IF..."></textarea></div>
+                    <div style="margin-top:10px;"><label>Adresse détaillée</label><textarea id="c-adresse" rows="2" placeholder="Adresse complète, ICE, IF..."></textarea></div>
                     <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
                         <button class="btn btn-success" onclick="saveClient()"><i class="fas fa-save"></i> Enregistrer</button>
                         <button class="btn btn-outline" onclick="closeClientForm()"><i class="fas fa-times"></i> Annuler</button>
@@ -558,7 +558,7 @@
                         <div><label>Au</label><input type="date" id="dev-end"></div>
                         <button class="btn btn-primary" onclick="loadDevis()"><i class="fas fa-filter"></i></button>
                         <button class="btn btn-outline" onclick="resetFilters('dev')"><i class="fas fa-undo"></i></button>
-                        <button class="btn btn-success" onclick="openDocEditor('devis')"><i class="fas fa-plus"></i> Creer un Devis</button>
+                        <button class="btn btn-success" onclick="openDocEditor('devis')"><i class="fas fa-plus"></i> Créer un Devis</button>
                     </div>
                 </div>
                 <div class="card">
@@ -582,13 +582,13 @@
                         <div><label>Au</label><input type="date" id="fac-end"></div>
                         <button class="btn btn-primary" onclick="loadFactures()"><i class="fas fa-filter"></i></button>
                         <button class="btn btn-outline" onclick="resetFilters('fac')"><i class="fas fa-undo"></i></button>
-                        <button class="btn btn-success" onclick="openDocEditor('facture')"><i class="fas fa-plus"></i> Creer une Facture</button>
+                        <button class="btn btn-success" onclick="openDocEditor('facture')"><i class="fas fa-plus"></i> Créer une Facture</button>
                     </div>
                 </div>
                 <div class="card">
                     <div class="table-responsive">
                         <table class="ui-table">
-                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Reste du</th><th>Statut</th><th style="width:200px;">Actions</th></tr></thead>
+                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Reste dû</th><th>Statut</th><th style="width:200px;">Actions</th></tr></thead>
                             <tbody id="factures-list"></tbody>
                         </table>
                     </div>
@@ -611,13 +611,13 @@
                         <div><label>Mode de paiement</label>
                             <select id="pay-mode">
                                 <option value="Virement">Virement</option>
-                                <option value="Cheque">Cheque</option>
-                                <option value="Especes">Especes</option>
+                                <option value="Cheque">Chèque</option>
+                                <option value="Especes">Espèces</option>
                                 <option value="Carte">Carte</option>
                                 <option value="Autre">Autre</option>
                             </select>
                         </div>
-                        <div><label>Reference (N Cheque...)</label><input type="text" id="pay-ref" placeholder="Optionnel"></div>
+                        <div><label>Référence (N° Chèque...)</label><input type="text" id="pay-ref" placeholder="Optionnel"></div>
                     </div>
                     <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
                         <button class="btn btn-success" onclick="savePayment()"><i class="fas fa-check"></i> Valider le paiement</button>
@@ -638,7 +638,7 @@
                  PARAMETRES
                  ========================================= -->
             <div id="settings" class="section">
-                <h1><i class="fas fa-cog"></i> Parametres Officiels (EPT)</h1>
+                <h1><i class="fas fa-cog"></i> Paramètres Officiels (EPT)</h1>
                 <div class="card">
                     <h3 style="border-bottom:1px solid #cbd5e1; padding-bottom:10px; margin-bottom:20px;"><i class="fas fa-image"></i> Images et Cachet</h3>
                     <div class="grid-2" style="margin-bottom:30px;">
@@ -662,12 +662,12 @@
                         </div>
                     </div>
 
-                    <h3 style="border-bottom:1px solid #cbd5e1; padding-bottom:10px; margin-bottom:20px;"><i class="fas fa-building"></i> Informations legales</h3>
+                    <h3 style="border-bottom:1px solid #cbd5e1; padding-bottom:10px; margin-bottom:20px;"><i class="fas fa-building"></i> Informations légales</h3>
                     <div class="grid">
-                        <div><label>Nom Societe</label><input type="text" id="s-nom" value="EPT, SARL"></div>
-                        <div><label>Telephone / Fax</label><input type="text" id="s-tel" value="Tel: 0524438768"></div>
+                        <div><label>Nom Société</label><input type="text" id="s-nom" value="EPT, SARL"></div>
+                        <div><label>Téléphone / Fax</label><input type="text" id="s-tel" value="Tel: 0524438768"></div>
                     </div>
-                    <div style="margin-bottom:15px;"><label>Adresse de l'emetteur</label><input type="text" id="s-adresse" value="QUARTIER MASSAR, 1050 bureau n 2, MARRAKECH"></div>
+                    <div style="margin-bottom:15px;"><label>Adresse de l'émetteur</label><input type="text" id="s-adresse" value="QUARTIER MASSAR, 1050 bureau n 2, MARRAKECH"></div>
                     <div style="margin-bottom:15px;"><label>Email</label><input type="text" id="s-email" value="direction@ept.com"></div>
 
                     <div class="grid">
@@ -688,19 +688,19 @@
                  EDITEUR DE DOCUMENT
                  ========================================= -->
             <div id="doc-editor" class="section">
-                <h1 id="editor-title"><i class="fas fa-file-alt"></i> Creation Document</h1>
+                <h1 id="editor-title"><i class="fas fa-file-alt"></i> Création Document</h1>
                 <input type="hidden" id="doc-type">
                 <input type="hidden" id="doc-edit-id">
                 <div class="card">
                     <div class="grid">
-                        <div><label>Selectionner le Client (*)</label><select id="doc-client"></select></div>
-                        <div><label>N Piece</label><input type="text" id="doc-ref" readonly style="background:#f8fafc;"></div>
+                        <div><label>Sélectionner le Client (*)</label><select id="doc-client"></select></div>
+                        <div><label>N° Pièce</label><input type="text" id="doc-ref" readonly style="background:#f8fafc;"></div>
                         <div><label>Date</label><input type="date" id="doc-date"></div>
                     </div>
                     <h3 style="margin-top:25px; margin-bottom:10px;"><i class="fas fa-list"></i> Prestations</h3>
                     <div class="table-responsive">
                         <table class="ui-table" style="min-width:500px;">
-                            <thead><tr><th style="width:55%;">Designation</th><th style="width:15%;">Qte</th><th style="width:20%;">Prix U. (MAD)</th><th style="width:10%;">Total</th><th style="width:50px;"></th></tr></thead>
+                            <thead><tr><th style="width:55%;">Désignation</th><th style="width:15%;">Qté</th><th style="width:20%;">Prix U. (MAD)</th><th style="width:10%;">Total</th><th style="width:50px;"></th></tr></thead>
                             <tbody id="doc-lines"></tbody>
                         </table>
                     </div>
@@ -731,12 +731,12 @@
          ========================================= -->
     <div id="selection-modal" class="modal-overlay">
         <div class="card" style="width:650px; max-width:95%; margin-top:20px;">
-            <h3 style="margin-bottom:20px;"><i class="fas fa-check-square"></i> Selection des prestations a facturer</h3>
-            <p style="margin-bottom:15px; font-size:0.88em; color:var(--muted);">Cochez les elements du devis que vous souhaitez inclure dans cette facture :</p>
+            <h3 style="margin-bottom:20px;"><i class="fas fa-check-square"></i> Sélection des prestations à facturer</h3>
+            <p style="margin-bottom:15px; font-size:0.88em; color:var(--muted);">Cochez les éléments du devis que vous souhaitez inclure dans cette facture :</p>
             <div id="selection-list" style="max-height:350px; overflow-y:auto; margin-bottom:20px; border:1px solid var(--border); border-radius:6px; padding:5px;"></div>
             <div style="text-align:right; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
                 <button class="btn btn-outline" onclick="document.getElementById('selection-modal').style.display='none'"><i class="fas fa-times"></i> Annuler</button>
-                <button class="btn btn-primary" onclick="confirmPartialInvoice()"><i class="fas fa-file-invoice"></i> Generer la facture</button>
+                <button class="btn btn-primary" onclick="confirmPartialInvoice()"><i class="fas fa-file-invoice"></i> Générer la facture</button>
             </div>
         </div>
     </div>
@@ -747,7 +747,7 @@
     <div id="pdf-modal" class="modal-overlay">
         <div class="preview-actions">
             <button class="btn btn-outline" onclick="document.getElementById('pdf-modal').style.display='none'"><i class="fas fa-times"></i> Fermer</button>
-            <button class="btn btn-primary" id="btn-download-pdf" onclick="downloadPDF()"><i class="fas fa-download"></i> Telecharger en PDF</button>
+            <button class="btn btn-primary" id="btn-download-pdf" onclick="downloadPDF()"><i class="fas fa-download"></i> Télécharger en PDF</button>
         </div>
 
         <div id="pdf-export" class="a4-document">
@@ -764,7 +764,7 @@
 
             <div class="pdf-boxes-container">
                 <div class="pdf-box-wrapper">
-                    <div class="pdf-box-title">Emetteur</div>
+                    <div class="pdf-box-title">Émetteur</div>
                     <div class="pdf-box">
                         <strong id="p-f-name"></strong><br>
                         <span id="p-f-address" class="pdf-address"></span>
@@ -782,9 +782,9 @@
             <table class="pdf-table-new">
                 <thead>
                     <tr>
-                        <th style="width:50%; text-align:left;">Designation</th>
+                        <th style="width:50%; text-align:left;">Désignation</th>
                         <th style="width:20%; text-align:center;">Prix Unitaire (MAD)</th>
-                        <th style="width:10%; text-align:center;">Qte</th>
+                        <th style="width:10%; text-align:center;">Qté</th>
                         <th style="width:20%; text-align:right;">Total H.T (MAD)</th>
                     </tr>
                 </thead>
@@ -1075,7 +1075,7 @@
         document.getElementById('app-container').style.display = 'flex';
 
         if (!supabaseClient) {
-            showError("Le script Supabase n'est pas charge. Verifiez votre connexion internet.");
+            showError("Le script Supabase n'est pas chargé. Vérifiez votre connexion internet.");
             document.getElementById('dashboard').classList.add('active');
             return;
         }
@@ -1089,7 +1089,7 @@
             nav('dashboard');
         } catch(e) {
             console.error('Erreur connexion Supabase:', e);
-            showError("Impossible de se connecter a la base de donnees. Verifiez les policies RLS, les droits d'acces et la cle publishable.");
+            showError("Impossible de se connecter à la base de données. Vérifiez les policies RLS, les droits d'accès et la clé publishable.");
             document.getElementById('dashboard').classList.add('active');
         }
     };
@@ -1133,7 +1133,7 @@
             if (sectionId === 'dashboard') await loadDashboard();
         } catch(e) {
             console.error('Erreur navigation:', e);
-            showError("Erreur de chargement : " + e.message + ". Verifiez les policies RLS et les droits d'acces.");
+            showError("Erreur de chargement : " + e.message + ". Vérifiez les policies RLS et les droits d'accès.");
         }
     };
 
@@ -1172,7 +1172,7 @@
     function renderClients(clients) {
         var html = '';
         if (clients.length === 0) {
-            html = '<tr class="empty-row"><td colspan="5">Aucun client enregistre</td></tr>';
+            html = '<tr class="empty-row"><td colspan="5">Aucun client enregistré</td></tr>';
         } else {
             clients.forEach(function(c) {
                 html += '<tr>' +
@@ -1190,7 +1190,7 @@
     }
 
     function updateClientSelect(clients) {
-        var options = '<option value="">-- Selectionnez --</option>';
+        var options = '<option value="">-- Sélectionnez --</option>';
         clients.forEach(function(c) {
             options += '<option value="' + escapeHTML(c.id) + '">' + escapeHTML(c.nom) + '</option>';
         });
@@ -1235,7 +1235,7 @@
 
             if (result.error) throw result.error;
             closeClientForm();
-            toast(editId ? 'Client modifie' : 'Client enregistre', 'success');
+            toast(editId ? 'Client modifié' : 'Client enregistré', 'success');
             await loadClients();
         } catch(e) {
             showError("Erreur sauvegarde client : " + e.message);
@@ -1243,18 +1243,18 @@
     };
 
     window.deleteClient = async function(id) {
-        if (!confirm('Supprimer definitivement ce client ?\nCette action est irreversible.')) return;
+        if (!confirm('Supprimer définitivement ce client ?\nCette action est irréversible.')) return;
         try {
             var result = await supabaseClient.from('clients').delete().eq('id', id);
             if (result.error) {
                 if (result.error.code === '23503' || result.error.message.indexOf('foreign key') !== -1) {
-                    toast('Impossible de supprimer : ce client est lie a des devis ou factures.', 'error');
+                    toast('Impossible de supprimer : ce client est lié à des devis ou factures.', 'error');
                 } else {
                     throw result.error;
                 }
                 return;
             }
-            toast('Client supprime', 'success');
+            toast('Client supprimé', 'success');
             await loadClients();
         } catch(e) {
             showError("Erreur suppression : " + e.message);
@@ -1372,10 +1372,10 @@
             }
 
             companySettings = result.data[0] || companySettings;
-            toast('Parametres enregistres', 'success');
+            toast('Paramètres enregistrés', 'success');
             await loadSettings();
         } catch(e) {
-            showError("Erreur parametres : " + e.message);
+            showError("Erreur paramètres : " + e.message);
         }
     };
 
@@ -1386,8 +1386,8 @@
         document.getElementById('doc-type').value = type;
         document.getElementById('doc-edit-id').value = '';
         document.getElementById('editor-title').innerHTML = type === 'devis'
-            ? '<i class="fas fa-file-alt"></i> Creer un Devis'
-            : '<i class="fas fa-file-invoice"></i> Creer une Facture';
+            ? '<i class="fas fa-file-alt"></i> Créer un Devis'
+            : '<i class="fas fa-file-invoice"></i> Créer une Facture';
         document.getElementById('doc-date').valueAsDate = new Date();
         document.getElementById('doc-ref').value = generateRef(type === 'devis' ? 'DV' : 'FA');
         document.getElementById('doc-tva-rate').value = '20';
@@ -1435,7 +1435,7 @@
         try {
             var type = document.getElementById('doc-type').value;
             var client_id = document.getElementById('doc-client').value;
-            if (!client_id) { toast('Selectionnez un client', 'error'); return; }
+            if (!client_id) { toast('Sélectionnez un client', 'error'); return; }
 
             var linesData = [];
             document.querySelectorAll('#doc-lines tr').forEach(function(tr) {
@@ -1491,7 +1491,7 @@
             var linesResult = await supabaseClient.from(linesTableName).insert(linesToInsert);
             if (linesResult.error) throw linesResult.error;
 
-            toast(type === 'devis' ? 'Devis enregistre' : 'Facture creee', 'success');
+            toast(type === 'devis' ? 'Devis enregistré' : 'Facture créée', 'success');
             nav(type === 'devis' ? 'devis' : 'factures');
         } catch(e) {
             showError("Erreur enregistrement : " + e.message);
@@ -1514,22 +1514,22 @@
         var data = result.data || [];
         var html = '';
         if (data.length === 0) {
-            html = '<tr class="empty-row"><td colspan="6">Aucun devis trouve</td></tr>';
+            html = '<tr class="empty-row"><td colspan="6">Aucun devis trouvé</td></tr>';
         } else {
             data.forEach(function(d) {
-                var acts = '<button class="btn btn-outline btn-sm" onclick="openPDF(\'' + escapeHTML(d.id) + '\', \'devis\')" title="Apercu / PDF"><i class="fas fa-print"></i></button> ';
+                var acts = '<button class="btn btn-outline btn-sm" onclick="openPDF(\'' + escapeHTML(d.id) + '\', \'devis\')" title="Aperçu / PDF"><i class="fas fa-print"></i></button> ';
 
                 if (d.statut !== 'Facture' && d.statut !== 'Factur\u00e9') {
                     acts += '<select class="status-select" onchange="updateStatus(\'devis\', \'' + escapeHTML(d.id) + '\', this.value)">' +
                         '<option value="" disabled selected>Statut</option>' +
-                        '<option value="Envoy\u00e9">Envoye</option>' +
-                        '<option value="Valid\u00e9">Valide</option>' +
-                        '<option value="Refus\u00e9">Refuse</option>' +
+                        '<option value="Envoy\u00e9">Envoyé</option>' +
+                        '<option value="Valid\u00e9">Validé</option>' +
+                        '<option value="Refus\u00e9">Refusé</option>' +
                         '</select> ';
                 }
 
                 if (d.statut === 'Valid\u00e9' || d.statut === 'Valide') {
-                    acts += '<button class="btn btn-success btn-sm" onclick="openSelectionModal(\'' + escapeHTML(d.id) + '\')" title="Generer Facture"><i class="fas fa-file-invoice"></i> Facturer</button> ';
+                    acts += '<button class="btn btn-success btn-sm" onclick="openSelectionModal(\'' + escapeHTML(d.id) + '\')" title="Générer Facture"><i class="fas fa-file-invoice"></i> Facturer</button> ';
                 }
 
                 acts += '<button class="btn btn-danger btn-sm" onclick="deleteDoc(\'' + escapeHTML(d.id) + '\', \'devis\')" title="Supprimer"><i class="fas fa-trash"></i></button>';
@@ -1562,10 +1562,10 @@
         var data = result.data || [];
         var html = '';
         if (data.length === 0) {
-            html = '<tr class="empty-row"><td colspan="7">Aucune facture trouvee</td></tr>';
+            html = '<tr class="empty-row"><td colspan="7">Aucune facture trouvée</td></tr>';
         } else {
             data.forEach(function(f) {
-                var acts = '<button class="btn btn-outline btn-sm" onclick="openPDF(\'' + escapeHTML(f.id) + '\', \'facture\')" title="Apercu / PDF"><i class="fas fa-print"></i></button> ';
+                var acts = '<button class="btn btn-outline btn-sm" onclick="openPDF(\'' + escapeHTML(f.id) + '\', \'facture\')" title="Aperçu / PDF"><i class="fas fa-print"></i></button> ';
 
                 var reste = parseFloat(f.reste_a_payer) || 0;
                 if (reste > 0) {
@@ -1595,11 +1595,11 @@
         try {
             var result = await supabaseClient.from(table).update({ statut: status }).eq('id', id);
             if (result.error) throw result.error;
-            toast('Statut mis a jour', 'success');
+            toast('Statut mis à jour', 'success');
             if (table === 'devis') await loadDevis();
             else await loadFactures();
         } catch(e) {
-            showError("Erreur mise a jour statut : " + e.message);
+            showError("Erreur mise à jour statut : " + e.message);
         }
     };
 
@@ -1608,7 +1608,7 @@
     // ================================================================
     window.deleteDoc = async function(id, table) {
         var label = table === 'devis' ? 'ce devis' : 'cette facture';
-        if (!confirm('Supprimer definitivement ' + label + ' ?\nCette action est irreversible.')) return;
+        if (!confirm('Supprimer définitivement ' + label + ' ?\nCette action est irréversible.')) return;
 
         try {
             // Tenter de supprimer les lignes liees d'abord
@@ -1623,12 +1623,12 @@
             var result = await supabaseClient.from(table).delete().eq('id', id);
             if (result.error) throw result.error;
 
-            toast('Document supprime', 'success');
+            toast('Document supprimé', 'success');
             if (table === 'devis') await loadDevis();
             else await loadFactures();
         } catch(e) {
             if (e.code === '23503' || (e.message && e.message.indexOf('foreign key') !== -1)) {
-                toast('Impossible de supprimer : des elements sont lies a ce document.', 'error');
+                toast('Impossible de supprimer : des éléments sont liés à ce document.', 'error');
             } else {
                 showError("Erreur suppression : " + e.message);
             }
@@ -1668,7 +1668,7 @@
                         '<label for="chk-item-' + index + '" style="cursor:pointer; flex:1; font-size:0.92em; text-transform:none; margin:0;">' +
                         '<strong>' + escapeHTML(item.designation) + '</strong><br>' +
                         '<span style="color:#64748b;">' + q + ' x ' + formatMoney(p) + ' MAD = ' + formatMoney(lineTotal) + ' MAD' +
-                        (qtyFacturee > 0 ? ' (deja facture : ' + qtyFacturee + ')' : '') +
+                        (qtyFacturee > 0 ? ' (déjà facturé : ' + qtyFacturee + ')' : '') +
                         '</span>' +
                         '</label></div>';
                 });
@@ -1688,7 +1688,7 @@
                 selectedIndexes.push(parseInt(cb.value));
             });
 
-            if (selectedIndexes.length === 0) { toast('Selectionnez au moins une prestation', 'error'); return; }
+            if (selectedIndexes.length === 0) { toast('Sélectionnez au moins une prestation', 'error'); return; }
 
             var selectedItems = selectedIndexes.map(function(idx) { return currentDevisLinesToInvoice[idx]; });
 
@@ -1752,7 +1752,7 @@
             await supabaseClient.from('devis').update({ statut: 'Factur\u00e9' }).eq('id', currentDevisToInvoice.id);
 
             document.getElementById('selection-modal').style.display = 'none';
-            toast('Facture creee avec succes !', 'success');
+            toast('Facture créée avec succès !', 'success');
             nav('factures');
         } catch(e) {
             showError("Erreur lors de la facturation : " + e.message);
@@ -1765,7 +1765,7 @@
     window.openPaiement = function(id, ref, reste) {
         document.getElementById('pay-facture-id').value = id;
         document.getElementById('pay-facture-ref').innerText = ref;
-        document.getElementById('pay-facture-reste').innerText = '(Reste du : ' + formatMoney(reste) + ' MAD)';
+        document.getElementById('pay-facture-reste').innerText = '(Reste dû : ' + formatMoney(reste) + ' MAD)';
         document.getElementById('pay-montant').value = reste.toFixed(2);
         document.getElementById('pay-montant').max = reste.toFixed(2);
         document.getElementById('pay-date').valueAsDate = new Date();
@@ -1790,7 +1790,7 @@
             var currentReste = parseFloat(fact.reste_a_payer) || 0;
 
             if (mt > currentReste + 0.01) {
-                if (!confirm('Le montant (' + formatMoney(mt) + ' MAD) depasse le reste du (' + formatMoney(currentReste) + ' MAD).\n\nVoulez-vous quand meme enregistrer ce paiement ?')) {
+                if (!confirm('Le montant (' + formatMoney(mt) + ' MAD) dépasse le reste dû (' + formatMoney(currentReste) + ' MAD).\n\nVoulez-vous quand même enregistrer ce paiement ?')) {
                     return;
                 }
             }
@@ -1810,7 +1810,7 @@
             await recalcFacturePayment(fId);
 
             document.getElementById('pay-form').style.display = 'none';
-            toast('Paiement enregistre', 'success');
+            toast('Paiement enregistré', 'success');
             await loadPaiements();
         } catch(e) {
             showError("Erreur paiement : " + e.message);
@@ -1859,7 +1859,7 @@
         var data = result.data || [];
         var html = '';
         if (data.length === 0) {
-            html = '<tr class="empty-row"><td colspan="6">Aucun paiement enregistre</td></tr>';
+            html = '<tr class="empty-row"><td colspan="6">Aucun paiement enregistré</td></tr>';
         } else {
             data.forEach(function(p) {
                 html += '<tr>' +
@@ -1876,7 +1876,7 @@
     }
 
     window.deletePaiement = async function(id, factureId) {
-        if (!confirm("Annuler ce paiement ?\nLe reste a payer sera recalcule automatiquement.")) return;
+        if (!confirm("Annuler ce paiement ?\nLe reste à payer sera recalculé automatiquement.")) return;
         try {
             var delResult = await supabaseClient.from('paiements').delete().eq('id', id);
             if (delResult.error) throw delResult.error;
@@ -1884,7 +1884,7 @@
             // Recalcul fiable a partir des paiements restants
             await recalcFacturePayment(factureId);
 
-            toast('Paiement annule', 'success');
+            toast('Paiement annulé', 'success');
             await loadPaiements();
         } catch(e) {
             showError("Erreur annulation paiement : " + e.message);
@@ -1998,9 +1998,9 @@
             // Bouton PDF dynamique
             var btnPdf = document.getElementById('btn-download-pdf');
             if (type === 'devis') {
-                btnPdf.innerHTML = '<i class="fas fa-download"></i> Telecharger le devis en PDF';
+                btnPdf.innerHTML = '<i class="fas fa-download"></i> Télécharger le devis en PDF';
             } else {
-                btnPdf.innerHTML = '<i class="fas fa-download"></i> Telecharger la facture en PDF';
+                btnPdf.innerHTML = '<i class="fas fa-download"></i> Télécharger la facture en PDF';
             }
 
             // Reference et date
@@ -2040,9 +2040,9 @@
             document.getElementById('p-tttc').innerText = formatMoney(doc.total_ttc);
 
             // Montant en lettres
-            var typeTxt = type === 'devis' ? 'le present devis' : 'la presente facture';
-            var verbTxt = type === 'devis' ? 'Arrete' : 'Arretee';
-            document.getElementById('p-lettres').innerHTML = verbTxt + ' ' + typeTxt + ' a la somme de :<br>' +
+            var typeTxt = type === 'devis' ? 'le présent devis' : 'la présente facture';
+            var verbTxt = type === 'devis' ? 'Arrêté' : 'Arrêtée';
+            document.getElementById('p-lettres').innerHTML = verbTxt + ' ' + typeTxt + ' à la somme de :<br>' +
                 '<span style="font-size:12pt; color:#0f172a; text-transform:uppercase;">' +
                 escapeHTML(NumberToLetter(doc.total_ttc)) + ' DIRHAMS TTC.</span>';
 
@@ -2069,7 +2069,7 @@
     };
 
     window.downloadPDF = function() {
-        toast('Generation du PDF...', 'info');
+        toast('Génération du PDF...', 'info');
 
         var element = document.getElementById('pdf-export');
         var originalShadow = element.style.boxShadow;
@@ -2092,12 +2092,12 @@
         };
 
         html2pdf().set(opt).from(element).save().then(function() {
-            toast('PDF telecharge !', 'success');
+            toast('PDF téléchargé !', 'success');
             element.style.boxShadow = originalShadow;
             element.style.transform = originalTransform;
             element.style.marginBottom = originalMarginBottom;
         }).catch(function(err) {
-            toast('Erreur generation PDF', 'error');
+            toast('Erreur génération PDF', 'error');
             element.style.boxShadow = originalShadow;
             element.style.transform = originalTransform;
             element.style.marginBottom = originalMarginBottom;
