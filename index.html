@@ -750,7 +750,7 @@
     <div id="pdf-modal" class="modal-overlay">
         <div class="preview-actions">
             <button class="btn btn-outline" onclick="document.getElementById('pdf-modal').style.display='none'"><i class="fas fa-times"></i> Fermer</button>
-            <button class="btn btn-primary" id="btn-download-pdf" onclick="downloadPDF()"><i class="fas fa-download"></i> Télécharger en PDF</button>
+            <button class="btn btn-primary" id="btn-download-pdf" onclick="askCachetChoiceForDownload()"><i class="fas fa-download"></i> Télécharger en PDF</button>
         </div>
 
         <div id="pdf-export" class="a4-document">
@@ -803,7 +803,7 @@
                 <span id="p-lettres"></span>
             </div>
 
-            <div style="display:flex; justify-content:flex-end; margin-top:30px; padding-right:20px;">
+            <div id="p-cachet-wrapper" style="display:flex; justify-content:flex-end; margin-top:30px; padding-right:20px;">
                 <img id="p-cachet" src="" style="max-width:300px; max-height:160px; object-fit:contain; display:none;">
             </div>
 
@@ -820,6 +820,22 @@
                     <span id="p-foot-cnss-container" style="display:none;"><strong>CNSS:</strong> <span id="p-foot-cnss"></span> &nbsp;|&nbsp; </span>
                     <strong>ICE:</strong> <span id="p-foot-ice"></span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================
+         MODAL CHOIX CACHET
+         ========================================= -->
+    <div id="cachet-modal" class="modal-overlay" style="z-index:10001;">
+        <div style="background:white; border-radius:12px; padding:30px; max-width:440px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.4); text-align:center; margin:auto;">
+            <div style="font-size:2.4em; color:var(--primary); margin-bottom:12px;"><i class="fas fa-stamp"></i></div>
+            <h3 id="cachet-modal-title" style="color:#0f172a; margin-bottom:8px; font-size:1.2em;">Cachet et signature</h3>
+            <p id="cachet-modal-text" style="color:var(--muted); margin-bottom:22px; font-size:0.92em; line-height:1.5;">Souhaitez-vous générer ce document avec le cachet/signature ?</p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+                <button class="btn btn-success" id="cachet-btn-yes" onclick="confirmCachetChoice(true)"><i class="fas fa-check"></i> <span id="cachet-btn-yes-label">Avec cachet</span></button>
+                <button class="btn btn-outline" id="cachet-btn-no" onclick="confirmCachetChoice(false)"><i class="fas fa-ban"></i> <span id="cachet-btn-no-label">Sans cachet</span></button>
+                <button class="btn btn-danger" onclick="cancelCachetChoice()"><i class="fas fa-times"></i> Annuler</button>
             </div>
         </div>
     </div>
@@ -851,6 +867,9 @@
     let currentDevisToInvoice = null;
     let currentDevisLinesToInvoice = [];
     let currentPdfType = 'facture'; // 'devis' ou 'facture'
+    let currentPdfWithCachet = true; // choix cachet courant (pour le document affiché)
+    let pendingCachetAction = null; // 'preview' | 'download' | null
+    let pendingCachetContext = null; // { id, type } pour preview, ou null pour download
 
     // ================================================================
     // UTILITAIRES
@@ -1520,7 +1539,7 @@
             html = '<tr class="empty-row"><td colspan="6">Aucun devis trouvé</td></tr>';
         } else {
             data.forEach(function(d) {
-                var acts = '<button class="btn btn-outline btn-sm" onclick="openPDF(\'' + escapeHTML(d.id) + '\', \'devis\')" title="Aperçu / PDF"><i class="fas fa-print"></i></button> ';
+                var acts = '<button class="btn btn-outline btn-sm" onclick="askCachetChoiceForPreview(\'' + escapeHTML(d.id) + '\', \'devis\')" title="Aperçu / PDF"><i class="fas fa-print"></i></button> ';
 
                 if (d.statut !== 'Facture' && d.statut !== 'Factur\u00e9') {
                     acts += '<select class="status-select" onchange="updateStatus(\'devis\', \'' + escapeHTML(d.id) + '\', this.value)">' +
@@ -1568,7 +1587,7 @@
             html = '<tr class="empty-row"><td colspan="7">Aucune facture trouvée</td></tr>';
         } else {
             data.forEach(function(f) {
-                var acts = '<button class="btn btn-outline btn-sm" onclick="openPDF(\'' + escapeHTML(f.id) + '\', \'facture\')" title="Aperçu / PDF"><i class="fas fa-print"></i></button> ';
+                var acts = '<button class="btn btn-outline btn-sm" onclick="askCachetChoiceForPreview(\'' + escapeHTML(f.id) + '\', \'facture\')" title="Aperçu / PDF"><i class="fas fa-print"></i></button> ';
 
                 var reste = parseFloat(f.reste_a_payer) || 0;
                 if (reste > 0) {
@@ -1962,11 +1981,15 @@
     // ================================================================
     // PDF GENERATION
     // ================================================================
-    window.openPDF = async function(id, type) {
+    window.openPDF = async function(id, type, withCachet) {
         try {
             await loadSettings();
 
             currentPdfType = type;
+            // Si withCachet n'est pas fourni, on garde le choix courant (defaut: true)
+            if (typeof withCachet === 'boolean') {
+                currentPdfWithCachet = withCachet;
+            }
 
             var tableName = type === 'devis' ? 'devis' : 'factures';
             var docResult = await supabaseClient.from(tableName).select('*, clients(*)').eq('id', id).single();
@@ -1987,12 +2010,16 @@
                 document.getElementById('p-logo').style.display = 'none';
             }
 
-            // Cachet
-            if (companySettings.cachet_base64) {
-                document.getElementById('p-cachet').src = companySettings.cachet_base64;
-                document.getElementById('p-cachet').style.display = 'inline-block';
+            // Cachet - afficher seulement si avec cachet ET cachet enregistre
+            var cachetImg = document.getElementById('p-cachet');
+            var cachetWrapper = document.getElementById('p-cachet-wrapper');
+            if (currentPdfWithCachet && companySettings.cachet_base64) {
+                cachetImg.src = companySettings.cachet_base64;
+                cachetImg.style.display = 'inline-block';
+                cachetWrapper.style.display = 'flex';
             } else {
-                document.getElementById('p-cachet').style.display = 'none';
+                cachetImg.style.display = 'none';
+                cachetWrapper.style.display = 'none';
             }
 
             // Titre
@@ -2071,9 +2098,68 @@
         }
     };
 
-    window.downloadPDF = async function() {
+    // ================================================================
+    // CHOIX CACHET (MODAL)
+    // ================================================================
+    window.askCachetChoiceForPreview = function(id, type) {
+        pendingCachetAction = 'preview';
+        pendingCachetContext = { id: id, type: type };
+        document.getElementById('cachet-modal-title').innerText = 'Cachet et signature';
+        document.getElementById('cachet-modal-text').innerText = 'Souhaitez-vous afficher ce document avec le cachet/signature ?';
+        document.getElementById('cachet-btn-yes-label').innerText = 'Avec cachet';
+        document.getElementById('cachet-btn-no-label').innerText = 'Sans cachet';
+        document.getElementById('cachet-modal').style.display = 'flex';
+    };
+
+    window.askCachetChoiceForDownload = function() {
+        pendingCachetAction = 'download';
+        pendingCachetContext = null;
+        document.getElementById('cachet-modal-title').innerText = 'Cachet et signature';
+        document.getElementById('cachet-modal-text').innerText = 'Souhaitez-vous télécharger ce document avec le cachet/signature ?';
+        document.getElementById('cachet-btn-yes-label').innerText = 'Télécharger avec cachet';
+        document.getElementById('cachet-btn-no-label').innerText = 'Télécharger sans cachet';
+        document.getElementById('cachet-modal').style.display = 'flex';
+    };
+
+    window.confirmCachetChoice = function(withCachet) {
+        var action = pendingCachetAction;
+        var ctx = pendingCachetContext;
+        // Reset immediatement l'etat
+        pendingCachetAction = null;
+        pendingCachetContext = null;
+        document.getElementById('cachet-modal').style.display = 'none';
+
+        if (action === 'preview' && ctx) {
+            openPDF(ctx.id, ctx.type, withCachet);
+        } else if (action === 'download') {
+            downloadPDF(withCachet);
+        }
+    };
+
+    window.cancelCachetChoice = function() {
+        pendingCachetAction = null;
+        pendingCachetContext = null;
+        document.getElementById('cachet-modal').style.display = 'none';
+    };
+
+    window.downloadPDF = async function(withCachet) {
         try {
             toast('Génération du PDF...', 'info');
+
+            // Si withCachet est fourni, on applique ce choix au document affiché
+            if (typeof withCachet === 'boolean') {
+                currentPdfWithCachet = withCachet;
+                var cachetImg = document.getElementById('p-cachet');
+                var cachetWrapper = document.getElementById('p-cachet-wrapper');
+                if (currentPdfWithCachet && companySettings.cachet_base64) {
+                    cachetImg.src = companySettings.cachet_base64;
+                    cachetImg.style.display = 'inline-block';
+                    cachetWrapper.style.display = 'flex';
+                } else {
+                    cachetImg.style.display = 'none';
+                    cachetWrapper.style.display = 'none';
+                }
+            }
 
             var element = document.getElementById('pdf-export');
             var refText = document.getElementById('p-ref').innerText || 'document';
