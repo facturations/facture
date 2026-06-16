@@ -259,6 +259,24 @@
         }
         .pdf-footer-new .pdf-address { font-size: 8pt; }
 
+        /* Logo de fond (filigrane) */
+        .pdf-bg-logo {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            width: 150mm;
+            max-width: 75%;
+            transform: translate(-50%, -50%);
+            opacity: 0.11;
+            filter: blur(0.2px);
+            z-index: 0;
+            pointer-events: none;
+        }
+        .a4-document > *:not(.pdf-bg-logo):not(.pdf-footer-new) {
+            position: relative;
+            z-index: 1;
+        }
+
         /* Status select styling */
         .status-select {
             display: inline-block; width: auto; padding: 4px 8px; font-size: 0.82em;
@@ -665,6 +683,18 @@
                         </div>
                     </div>
 
+                    <div class="grid-2" style="margin-bottom:30px;">
+                        <div>
+                            <label>Logo de fond PDF (filigrane)</label>
+                            <div style="display:flex; gap:15px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
+                                <div style="width:150px; height:80px; border:1px dashed #94a3b8; display:flex; align-items:center; justify-content:center; background:#f8fafc; border-radius:6px;">
+                                    <img id="s-logo-fond-preview" style="max-width:100%; max-height:100%; object-fit:contain;" onerror="this.style.display='none';">
+                                </div>
+                                <input type="file" id="s-logo-fond" accept="image/*" onchange="previewImage(event, 's-logo-fond-preview')" style="max-width:220px;">
+                            </div>
+                        </div>
+                    </div>
+
                     <h3 style="border-bottom:1px solid #cbd5e1; padding-bottom:10px; margin-bottom:20px;"><i class="fas fa-building"></i> Informations légales</h3>
                     <div class="grid">
                         <div><label>Nom Société</label><input type="text" id="s-nom" value="EPT, SARL"></div>
@@ -754,6 +784,7 @@
         </div>
 
         <div id="pdf-export" class="a4-document">
+            <img id="p-bg-logo" class="pdf-bg-logo" src="" alt="">
             <div class="pdf-header-top">
                 <div style="text-align:left; width:280px;">
                     <img id="p-logo" src="" style="max-width:100%; max-height:90px; margin-bottom:5px; display:none;">
@@ -1323,6 +1354,10 @@
                     document.getElementById('s-cachet-preview').src = data.cachet_base64;
                     document.getElementById('s-cachet-preview').style.display = 'block';
                 }
+                if (data.logo_fond_base64) {
+                    document.getElementById('s-logo-fond-preview').src = data.logo_fond_base64;
+                    document.getElementById('s-logo-fond-preview').style.display = 'block';
+                }
             } else {
                 companySettings = {};
             }
@@ -1372,6 +1407,9 @@
 
             var cachetImg = document.getElementById('s-cachet-preview');
             if (cachetImg.src && cachetImg.src.startsWith('data:')) updates.cachet_base64 = cachetImg.src;
+
+            var logoFondImg = document.getElementById('s-logo-fond-preview');
+            if (logoFondImg.src && logoFondImg.src.startsWith('data:')) updates.logo_fond_base64 = logoFondImg.src;
 
             var result;
             if (companySettings.id) {
@@ -2020,6 +2058,16 @@
             } else {
                 cachetImg.style.display = 'none';
                 cachetWrapper.style.display = 'none';
+            }
+
+            // Logo de fond (filigrane)
+            var bgLogo = document.getElementById('p-bg-logo');
+            if (companySettings.logo_fond_base64) {
+                bgLogo.src = companySettings.logo_fond_base64;
+                bgLogo.style.display = 'block';
+            } else {
+                bgLogo.src = '';
+                bgLogo.style.display = 'none';
             }
 
             // Titre
