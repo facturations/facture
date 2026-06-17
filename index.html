@@ -585,7 +585,7 @@
                 <div class="card">
                     <div class="table-responsive">
                         <table class="ui-table">
-                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Statut</th><th style="width:200px;">Actions</th></tr></thead>
+                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Statut</th><th style="width:280px;">Actions</th></tr></thead>
                             <tbody id="devis-list"></tbody>
                         </table>
                     </div>
@@ -609,7 +609,7 @@
                 <div class="card">
                     <div class="table-responsive">
                         <table class="ui-table">
-                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Reste dû</th><th>Statut</th><th style="width:200px;">Actions</th></tr></thead>
+                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Reste dû</th><th>Statut</th><th style="width:280px;">Actions</th></tr></thead>
                             <tbody id="factures-list"></tbody>
                         </table>
                     </div>
@@ -732,8 +732,8 @@
                     </div>
                     <h3 style="margin-top:25px; margin-bottom:10px;"><i class="fas fa-list"></i> Prestations</h3>
                     <div class="table-responsive">
-                        <table class="ui-table" style="min-width:500px;">
-                            <thead><tr><th style="width:55%;">Désignation</th><th style="width:15%;">Qté</th><th style="width:20%;">Prix U. (MAD)</th><th style="width:10%;">Total</th><th style="width:50px;"></th></tr></thead>
+                        <table class="ui-table" style="min-width:650px;">
+                            <thead><tr><th style="width:48%;">Désignation</th><th style="width:10%;">Taille</th><th style="width:10%;">Qté</th><th style="width:18%;">Prix U. (MAD)</th><th style="width:10%;">Total</th><th style="width:50px;"></th></tr></thead>
                             <tbody id="doc-lines"></tbody>
                         </table>
                     </div>
@@ -1464,12 +1464,34 @@
     window.addDocLine = function() {
         var tr = document.createElement('tr');
         tr.innerHTML =
-            '<td><input type="text" class="l-des" placeholder="Description..." style="width:100%;"></td>' +
+            '<td><textarea class="l-des" placeholder="Description..." rows="2" style="width:100%; resize:vertical;"></textarea></td>' +
+            '<td><input type="number" class="l-fontsize" value="10" min="6" max="24" step="1" style="text-align:center;" title="Taille de texte de la désignation"></td>' +
             '<td><input type="number" class="l-qty" value="1" min="1" style="text-align:center;" oninput="calcTotal()"></td>' +
             '<td><input type="number" class="l-px" value="0" step="0.01" min="0" oninput="calcTotal()"></td>' +
             '<td class="l-total" style="text-align:right; font-weight:600; vertical-align:middle;">0,00</td>' +
             '<td style="text-align:center; vertical-align:middle;"><button class="btn btn-danger btn-sm" onclick="this.closest(\'tr\').remove(); calcTotal()"><i class="fas fa-trash"></i></button></td>';
         document.getElementById('doc-lines').appendChild(tr);
+    };
+
+    // Helper: ajouter une ligne avec des valeurs pré-remplies
+    window.addDocLineWithData = function(data) {
+        data = data || {};
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+            '<td><textarea class="l-des" placeholder="Description..." rows="2" style="width:100%; resize:vertical;"></textarea></td>' +
+            '<td><input type="number" class="l-fontsize" value="10" min="6" max="24" step="1" style="text-align:center;" title="Taille de texte de la désignation"></td>' +
+            '<td><input type="number" class="l-qty" value="1" min="1" style="text-align:center;" oninput="calcTotal()"></td>' +
+            '<td><input type="number" class="l-px" value="0" step="0.01" min="0" oninput="calcTotal()"></td>' +
+            '<td class="l-total" style="text-align:right; font-weight:600; vertical-align:middle;">0,00</td>' +
+            '<td style="text-align:center; vertical-align:middle;"><button class="btn btn-danger btn-sm" onclick="this.closest(\'tr\').remove(); calcTotal()"><i class="fas fa-trash"></i></button></td>';
+        document.getElementById('doc-lines').appendChild(tr);
+
+        // Remplir les valeurs
+        tr.querySelector('.l-des').value = data.designation || '';
+        tr.querySelector('.l-fontsize').value = data.designation_font_size || 10;
+        tr.querySelector('.l-qty').value = data.quantite || 1;
+        tr.querySelector('.l-px').value = data.prix_unitaire || 0;
+        return tr;
     };
 
     window.calcTotal = function() {
@@ -1501,8 +1523,12 @@
             document.querySelectorAll('#doc-lines tr').forEach(function(tr) {
                 var des = tr.querySelector('.l-des').value.trim();
                 if (des !== '') {
+                    var fontSize = parseInt(tr.querySelector('.l-fontsize').value) || 10;
+                    if (fontSize < 6) fontSize = 6;
+                    if (fontSize > 24) fontSize = 24;
                     linesData.push({
                         designation: des,
+                        designation_font_size: fontSize,
                         quantite: parseFloat(tr.querySelector('.l-qty').value) || 1,
                         prix_unitaire: parseFloat(tr.querySelector('.l-px').value) || 0
                     });
@@ -1511,6 +1537,9 @@
             if (linesData.length === 0) { toast('Ajoutez au moins une ligne', 'error'); return; }
 
             var t = calcTotal();
+            var editId = document.getElementById('doc-edit-id').value;
+            var isEdit = editId && editId !== '';
+
             var docObj = {
                 ref: document.getElementById('doc-ref').value,
                 client_id: client_id,
@@ -1520,41 +1549,170 @@
                 total_ttc: t.ttc
             };
 
-            var parentId;
-            if (type === 'devis') {
-                docObj.date_devis = document.getElementById('doc-date').value;
-                docObj.statut = 'Brouillon';
-                var insertResult = await supabaseClient.from('devis').insert([docObj]).select();
-                if (insertResult.error) throw insertResult.error;
-                parentId = insertResult.data[0].id;
-            } else {
-                docObj.date_facture = document.getElementById('doc-date').value;
-                docObj.statut = 'Non payee';
-                docObj.reste_a_payer = t.ttc;
-                var insertResult = await supabaseClient.from('factures').insert([docObj]).select();
-                if (insertResult.error) throw insertResult.error;
-                parentId = insertResult.data[0].id;
-            }
-
-            // Inserer les lignes
-            var linesToInsert = linesData.map(function(l) {
-                var lineObj = { designation: l.designation, quantite: l.quantite, prix_unitaire: l.prix_unitaire };
-                if (type === 'devis') {
-                    lineObj.devis_id = parentId;
-                } else {
-                    lineObj.facture_id = parentId;
-                }
-                return lineObj;
-            });
-
             var linesTableName = type === 'devis' ? 'lignes_devis' : 'lignes_factures';
-            var linesResult = await supabaseClient.from(linesTableName).insert(linesToInsert);
-            if (linesResult.error) throw linesResult.error;
+            var foreignKey = type === 'devis' ? 'devis_id' : 'facture_id';
 
-            toast(type === 'devis' ? 'Devis enregistré' : 'Facture créée', 'success');
-            nav(type === 'devis' ? 'devis' : 'factures');
+            if (isEdit) {
+                // MODE EDITION
+                if (type === 'devis') {
+                    docObj.date_devis = document.getElementById('doc-date').value;
+                    // Ne pas écraser le statut si déjà avancé
+                    var existingDevis = await supabaseClient.from('devis').select('statut').eq('id', editId).single();
+                    if (!existingDevis.error && existingDevis.data) {
+                        // Garder le statut existant (sauf si Brouillon)
+                        if (existingDevis.data.statut && existingDevis.data.statut !== 'Brouillon') {
+                            // Garder tel quel
+                        }
+                    }
+                    var updateResult = await supabaseClient.from('devis').update(docObj).eq('id', editId);
+                    if (updateResult.error) throw updateResult.error;
+                } else {
+                    docObj.date_facture = document.getElementById('doc-date').value;
+
+                    // Récupérer les paiements existants pour recalculer reste_a_payer et statut
+                    var payResult = await supabaseClient.from('paiements').select('montant').eq('facture_id', editId);
+                    var totalPaye = 0;
+                    if (!payResult.error && payResult.data) {
+                        payResult.data.forEach(function(p) { totalPaye += parseFloat(p.montant) || 0; });
+                    }
+                    var reste = t.ttc - totalPaye;
+                    if (reste < 0) reste = 0;
+                    docObj.reste_a_payer = reste;
+
+                    if (totalPaye <= 0) {
+                        docObj.statut = 'Non payee';
+                    } else if (reste > 0) {
+                        docObj.statut = 'Partiellement payee';
+                    } else {
+                        docObj.statut = 'Payee';
+                    }
+
+                    var updateResult = await supabaseClient.from('factures').update(docObj).eq('id', editId);
+                    if (updateResult.error) throw updateResult.error;
+                }
+
+                // Supprimer les anciennes lignes puis réinsérer les nouvelles
+                var delLines = await supabaseClient.from(linesTableName).delete().eq(foreignKey, editId);
+                if (delLines.error) throw delLines.error;
+
+                var linesToInsert = linesData.map(function(l) {
+                    var lineObj = {
+                        designation: l.designation,
+                        designation_font_size: l.designation_font_size,
+                        quantite: l.quantite,
+                        prix_unitaire: l.prix_unitaire
+                    };
+                    lineObj[foreignKey] = editId;
+                    return lineObj;
+                });
+
+                var linesResult = await supabaseClient.from(linesTableName).insert(linesToInsert);
+                if (linesResult.error) throw linesResult.error;
+
+                toast(type === 'devis' ? 'Devis modifié' : 'Facture modifiée', 'success');
+                nav(type === 'devis' ? 'devis' : 'factures');
+            } else {
+                // MODE CREATION
+                var parentId;
+                if (type === 'devis') {
+                    docObj.date_devis = document.getElementById('doc-date').value;
+                    docObj.statut = 'Brouillon';
+                    var insertResult = await supabaseClient.from('devis').insert([docObj]).select();
+                    if (insertResult.error) throw insertResult.error;
+                    parentId = insertResult.data[0].id;
+                } else {
+                    docObj.date_facture = document.getElementById('doc-date').value;
+                    docObj.statut = 'Non payee';
+                    docObj.reste_a_payer = t.ttc;
+                    var insertResult = await supabaseClient.from('factures').insert([docObj]).select();
+                    if (insertResult.error) throw insertResult.error;
+                    parentId = insertResult.data[0].id;
+                }
+
+                // Inserer les lignes
+                var linesToInsert = linesData.map(function(l) {
+                    var lineObj = {
+                        designation: l.designation,
+                        designation_font_size: l.designation_font_size,
+                        quantite: l.quantite,
+                        prix_unitaire: l.prix_unitaire
+                    };
+                    if (type === 'devis') {
+                        lineObj.devis_id = parentId;
+                    } else {
+                        lineObj.facture_id = parentId;
+                    }
+                    return lineObj;
+                });
+
+                var linesResult = await supabaseClient.from(linesTableName).insert(linesToInsert);
+                if (linesResult.error) throw linesResult.error;
+
+                toast(type === 'devis' ? 'Devis enregistré' : 'Facture créée', 'success');
+                nav(type === 'devis' ? 'devis' : 'factures');
+            }
         } catch(e) {
             showError("Erreur enregistrement : " + e.message);
+        }
+    };
+
+    // ================================================================
+    // EDITION D'UN DOCUMENT EXISTANT
+    // ================================================================
+    window.editDocument = async function(id, type) {
+        try {
+            await loadClients();
+
+            var tableName = type === 'devis' ? 'devis' : 'factures';
+            var dateField = type === 'devis' ? 'date_devis' : 'date_facture';
+            var linesTableName = type === 'devis' ? 'lignes_devis' : 'lignes_factures';
+            var foreignKey = type === 'devis' ? 'devis_id' : 'facture_id';
+
+            // Charger le document
+            var docRes = await supabaseClient.from(tableName).select('*').eq('id', id).single();
+            if (docRes.error) throw docRes.error;
+            var doc = docRes.data;
+
+            // Charger les lignes
+            var linesRes = await supabaseClient.from(linesTableName).select('*').eq(foreignKey, id);
+            if (linesRes.error) throw linesRes.error;
+            var lines = linesRes.data || [];
+
+            // Configurer l'éditeur pour édition
+            document.getElementById('doc-type').value = type;
+            document.getElementById('doc-edit-id').value = id;
+            document.getElementById('editor-title').innerHTML = type === 'devis'
+                ? '<i class="fas fa-edit"></i> Modifier le Devis ' + escapeHTML(doc.ref || '')
+                : '<i class="fas fa-edit"></i> Modifier la Facture ' + escapeHTML(doc.ref || '');
+
+            document.getElementById('doc-ref').value = doc.ref || '';
+            document.getElementById('doc-date').value = doc[dateField] || '';
+            document.getElementById('doc-tva-rate').value = doc.tva_rate || 20;
+
+            // Sélectionner le client
+            if (doc.client_id) {
+                document.getElementById('doc-client').value = doc.client_id;
+            }
+
+            // Vider les lignes existantes puis charger
+            document.getElementById('doc-lines').innerHTML = '';
+            if (lines.length === 0) {
+                addDocLine();
+            } else {
+                lines.forEach(function(l) {
+                    addDocLineWithData({
+                        designation: l.designation || '',
+                        designation_font_size: l.designation_font_size || 10,
+                        quantite: l.quantite,
+                        prix_unitaire: l.prix_unitaire
+                    });
+                });
+            }
+
+            calcTotal();
+            nav('doc-editor');
+        } catch(e) {
+            showError("Erreur chargement document : " + e.message);
         }
     };
 
@@ -1578,6 +1736,7 @@
         } else {
             data.forEach(function(d) {
                 var acts = '<button class="btn btn-outline btn-sm" onclick="askCachetChoiceForPreview(\'' + escapeHTML(d.id) + '\', \'devis\')" title="Aperçu / PDF"><i class="fas fa-print"></i></button> ';
+                acts += '<button class="btn btn-primary btn-sm" onclick="editDocument(\'' + escapeHTML(d.id) + '\', \'devis\')" title="Modifier"><i class="fas fa-edit"></i></button> ';
 
                 if (d.statut !== 'Facture' && d.statut !== 'Factur\u00e9') {
                     acts += '<select class="status-select" onchange="updateStatus(\'devis\', \'' + escapeHTML(d.id) + '\', this.value)">' +
@@ -1626,6 +1785,7 @@
         } else {
             data.forEach(function(f) {
                 var acts = '<button class="btn btn-outline btn-sm" onclick="askCachetChoiceForPreview(\'' + escapeHTML(f.id) + '\', \'facture\')" title="Aperçu / PDF"><i class="fas fa-print"></i></button> ';
+                acts += '<button class="btn btn-primary btn-sm" onclick="editDocument(\'' + escapeHTML(f.id) + '\', \'facture\')" title="Modifier"><i class="fas fa-edit"></i></button> ';
 
                 var reste = parseFloat(f.reste_a_payer) || 0;
                 if (reste > 0) {
@@ -1787,6 +1947,7 @@
                 return {
                     facture_id: newFactureId,
                     designation: l.designation,
+                    designation_font_size: l.designation_font_size || 10,
                     quantite: l.quantite,
                     prix_unitaire: l.prix_unitaire
                 };
@@ -2102,8 +2263,13 @@
             // Lignes du tableau
             var tBody = '';
             lines.forEach(function(l) {
+                var fontSize = parseInt(l.designation_font_size) || 10;
+                if (fontSize < 6) fontSize = 6;
+                if (fontSize > 24) fontSize = 24;
+                // Preserver les retours a la ligne exacts avec white-space: pre-line
+                var designationHTML = '<span style="white-space: pre-line;">' + escapeHTML(l.designation) + '</span>';
                 tBody += '<tr>' +
-                    '<td>' + escapeHTML(l.designation).replace(/\n/g, '<br>') + '</td>' +
+                    '<td style="font-size:' + fontSize + 'pt; line-height:1.4;">' + designationHTML + '</td>' +
                     '<td style="text-align:center;">' + formatMoney(l.prix_unitaire) + '</td>' +
                     '<td style="text-align:center;">' + l.quantite + '</td>' +
                     '<td style="text-align:right;">' + formatMoney(parseFloat(l.quantite) * parseFloat(l.prix_unitaire)) + '</td>' +
