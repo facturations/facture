@@ -585,7 +585,7 @@
                 <div class="card">
                     <div class="table-responsive">
                         <table class="ui-table">
-                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Statut</th><th style="width:280px;">Actions</th></tr></thead>
+                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>Titre</th><th>TTC</th><th>Statut</th><th style="width:280px;">Actions</th></tr></thead>
                             <tbody id="devis-list"></tbody>
                         </table>
                     </div>
@@ -609,7 +609,7 @@
                 <div class="card">
                     <div class="table-responsive">
                         <table class="ui-table">
-                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>TTC</th><th>Reste dû</th><th>Statut</th><th style="width:280px;">Actions</th></tr></thead>
+                            <thead><tr><th>Ref</th><th>Date</th><th>Client</th><th>Titre</th><th>TTC</th><th>Reste dû</th><th>Statut</th><th style="width:280px;">Actions</th></tr></thead>
                             <tbody id="factures-list"></tbody>
                         </table>
                     </div>
@@ -727,8 +727,17 @@
                 <div class="card">
                     <div class="grid">
                         <div><label>Sélectionner le Client (*)</label><select id="doc-client"></select></div>
-                        <div><label>N° Pièce</label><input type="text" id="doc-ref" readonly style="background:#f8fafc;"></div>
+                        <div>
+                            <label>N° Pièce</label>
+                            <div style="display:flex; gap:8px;">
+                                <input type="text" id="doc-ref" style="flex:1;">
+                                <button type="button" class="btn btn-outline btn-sm" style="white-space:nowrap;" onclick="regenerateRef()" title="Générer automatiquement le numéro"><i class="fas fa-sync-alt"></i> Générer</button>
+                            </div>
+                        </div>
                         <div><label>Date</label><input type="date" id="doc-date"></div>
+                    </div>
+                    <div class="grid" style="margin-top:10px;">
+                        <div style="grid-column: 1 / -1;"><label>Titre du document (optionnel)</label><input type="text" id="doc-titre" placeholder="Ex : Mission d'accompagnement, Audit hôtelier, Convention d'investissement..." maxlength="200"></div>
                     </div>
                     <h3 style="margin-top:25px; margin-bottom:10px;"><i class="fas fa-list"></i> Prestations</h3>
                     <div class="table-responsive">
@@ -794,6 +803,11 @@
                     <div style="font-size:11pt; color:#334155; font-weight:bold; margin-bottom:3px;">N : <span id="p-ref"></span></div>
                     <div style="font-size:11pt; color:#334155;">Date : <span id="p-date-text"></span></div>
                 </div>
+            </div>
+
+            <div id="p-titre-container" style="margin-bottom:16px; padding:10px 14px; background:#f1f5f9; border-left:4px solid #2563eb; border-radius:4px; display:none;">
+                <span style="font-size:9pt; color:#64748b; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Titre :</span>
+                <span id="p-titre" style="font-size:12pt; color:#0f172a; font-weight:bold; margin-left:8px;"></span>
             </div>
 
             <div class="pdf-boxes-container">
@@ -961,6 +975,14 @@
         var s = String(now.getSeconds()).padStart(2, '0');
         return prefix + '-' + y + m + d + '-' + h + mi + s;
     }
+
+    /** Regenerer automatiquement le numero dans le champ doc-ref */
+    window.regenerateRef = function() {
+        var type = document.getElementById('doc-type').value;
+        var prefix = type === 'devis' ? 'DV' : 'FA';
+        document.getElementById('doc-ref').value = generateRef(prefix);
+        toast('Numéro généré : ' + document.getElementById('doc-ref').value, 'info');
+    };
 
     /** Obtenir la classe de badge selon le statut */
     function getBadgeClass(status) {
@@ -1451,6 +1473,7 @@
         document.getElementById('doc-date').valueAsDate = new Date();
         document.getElementById('doc-ref').value = generateRef(type === 'devis' ? 'DV' : 'FA');
         document.getElementById('doc-tva-rate').value = '20';
+        document.getElementById('doc-titre').value = '';
         document.getElementById('doc-lines').innerHTML = '';
         addDocLine();
         nav('doc-editor');
@@ -1519,6 +1542,10 @@
             var client_id = document.getElementById('doc-client').value;
             if (!client_id) { toast('Sélectionnez un client', 'error'); return; }
 
+            // Valider le numéro de pièce
+            var refValue = (document.getElementById('doc-ref').value || '').trim();
+            if (!refValue) { toast('Le numéro de pièce est obligatoire', 'error'); return; }
+
             var linesData = [];
             document.querySelectorAll('#doc-lines tr').forEach(function(tr) {
                 var des = tr.querySelector('.l-des').value.trim();
@@ -1539,10 +1566,12 @@
             var t = calcTotal();
             var editId = document.getElementById('doc-edit-id').value;
             var isEdit = editId && editId !== '';
+            var titreValue = (document.getElementById('doc-titre').value || '').trim();
 
             var docObj = {
-                ref: document.getElementById('doc-ref').value,
+                ref: refValue,
                 client_id: client_id,
+                titre: titreValue,
                 total_ht: t.ht,
                 tva_rate: t.tvaR,
                 total_tva: t.tva,
@@ -1551,17 +1580,27 @@
 
             var linesTableName = type === 'devis' ? 'lignes_devis' : 'lignes_factures';
             var foreignKey = type === 'devis' ? 'devis_id' : 'facture_id';
+            var mainTable = type === 'devis' ? 'devis' : 'factures';
+
+            // Verifier l'unicite de la reference
+            var dupQuery = supabaseClient.from(mainTable).select('id, ref').eq('ref', refValue);
+            if (isEdit) {
+                dupQuery = dupQuery.neq('id', editId);
+            }
+            var dupResult = await dupQuery;
+            if (!dupResult.error && dupResult.data && dupResult.data.length > 0) {
+                toast('Ce numéro existe déjà. Veuillez choisir un autre numéro.', 'error');
+                return;
+            }
 
             if (isEdit) {
                 // MODE EDITION
                 if (type === 'devis') {
                     docObj.date_devis = document.getElementById('doc-date').value;
-                    // Ne pas écraser le statut si déjà avancé
                     var existingDevis = await supabaseClient.from('devis').select('statut').eq('id', editId).single();
                     if (!existingDevis.error && existingDevis.data) {
-                        // Garder le statut existant (sauf si Brouillon)
                         if (existingDevis.data.statut && existingDevis.data.statut !== 'Brouillon') {
-                            // Garder tel quel
+                            // Garder le statut existant
                         }
                     }
                     var updateResult = await supabaseClient.from('devis').update(docObj).eq('id', editId);
@@ -1569,7 +1608,6 @@
                 } else {
                     docObj.date_facture = document.getElementById('doc-date').value;
 
-                    // Récupérer les paiements existants pour recalculer reste_a_payer et statut
                     var payResult = await supabaseClient.from('paiements').select('montant').eq('facture_id', editId);
                     var totalPaye = 0;
                     if (!payResult.error && payResult.data) {
@@ -1591,7 +1629,6 @@
                     if (updateResult.error) throw updateResult.error;
                 }
 
-                // Supprimer les anciennes lignes puis réinsérer les nouvelles
                 var delLines = await supabaseClient.from(linesTableName).delete().eq(foreignKey, editId);
                 if (delLines.error) throw delLines.error;
 
@@ -1629,7 +1666,6 @@
                     parentId = insertResult.data[0].id;
                 }
 
-                // Inserer les lignes
                 var linesToInsert = linesData.map(function(l) {
                     var lineObj = {
                         designation: l.designation,
@@ -1688,6 +1724,7 @@
             document.getElementById('doc-ref').value = doc.ref || '';
             document.getElementById('doc-date').value = doc[dateField] || '';
             document.getElementById('doc-tva-rate').value = doc.tva_rate || 20;
+            document.getElementById('doc-titre').value = doc.titre || '';
 
             // Sélectionner le client
             if (doc.client_id) {
@@ -1732,7 +1769,7 @@
         var data = result.data || [];
         var html = '';
         if (data.length === 0) {
-            html = '<tr class="empty-row"><td colspan="6">Aucun devis trouvé</td></tr>';
+            html = '<tr class="empty-row"><td colspan="7">Aucun devis trouvé</td></tr>';
         } else {
             data.forEach(function(d) {
                 var acts = '<button class="btn btn-outline btn-sm" onclick="askCachetChoiceForPreview(\'' + escapeHTML(d.id) + '\', \'devis\')" title="Aperçu / PDF"><i class="fas fa-print"></i></button> ';
@@ -1753,10 +1790,13 @@
 
                 acts += '<button class="btn btn-danger btn-sm" onclick="deleteDoc(\'' + escapeHTML(d.id) + '\', \'devis\')" title="Supprimer"><i class="fas fa-trash"></i></button>';
 
+                var titreDisplay = d.titre ? escapeHTML(d.titre) : '—';
+
                 html += '<tr>' +
                     '<td><strong>' + escapeHTML(d.ref) + '</strong></td>' +
                     '<td>' + formatDate(d.date_devis) + '</td>' +
                     '<td>' + escapeHTML(d.clients ? d.clients.nom : '-') + '</td>' +
+                    '<td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + escapeHTML(d.titre || '') + '">' + titreDisplay + '</td>' +
                     '<td>' + formatMoney(d.total_ttc) + ' MAD</td>' +
                     '<td><span class="badge ' + getBadgeClass(d.statut) + '">' + escapeHTML(d.statut) + '</span></td>' +
                     '<td>' + acts + '</td></tr>';
@@ -1781,7 +1821,7 @@
         var data = result.data || [];
         var html = '';
         if (data.length === 0) {
-            html = '<tr class="empty-row"><td colspan="7">Aucune facture trouvée</td></tr>';
+            html = '<tr class="empty-row"><td colspan="8">Aucune facture trouvée</td></tr>';
         } else {
             data.forEach(function(f) {
                 var acts = '<button class="btn btn-outline btn-sm" onclick="askCachetChoiceForPreview(\'' + escapeHTML(f.id) + '\', \'facture\')" title="Aperçu / PDF"><i class="fas fa-print"></i></button> ';
@@ -1794,10 +1834,13 @@
 
                 acts += '<button class="btn btn-danger btn-sm" onclick="deleteDoc(\'' + escapeHTML(f.id) + '\', \'factures\')" title="Supprimer"><i class="fas fa-trash"></i></button>';
 
+                var titreDisplay = f.titre ? escapeHTML(f.titre) : '—';
+
                 html += '<tr>' +
                     '<td><strong>' + escapeHTML(f.ref) + '</strong></td>' +
                     '<td>' + formatDate(f.date_facture) + '</td>' +
                     '<td>' + escapeHTML(f.clients ? f.clients.nom : '-') + '</td>' +
+                    '<td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="' + escapeHTML(f.titre || '') + '">' + titreDisplay + '</td>' +
                     '<td>' + formatMoney(f.total_ttc) + ' MAD</td>' +
                     '<td style="color:' + (reste > 0 ? 'var(--danger)' : 'var(--success)') + '; font-weight:bold;">' + formatMoney(reste) + ' MAD</td>' +
                     '<td><span class="badge ' + getBadgeClass(f.statut) + '">' + escapeHTML(f.statut) + '</span></td>' +
@@ -1929,6 +1972,7 @@
                 ref: newRef,
                 devis_id: currentDevisToInvoice.id,
                 client_id: currentDevisToInvoice.client_id,
+                titre: currentDevisToInvoice.titre || null,
                 date_facture: new Date().toISOString().split('T')[0],
                 total_ht: tht,
                 tva_rate: rate,
@@ -2246,6 +2290,17 @@
             document.getElementById('p-ref').innerText = doc.ref;
             var docDate = type === 'devis' ? doc.date_devis : doc.date_facture;
             document.getElementById('p-date-text').innerText = formatDate(docDate);
+
+            // Titre du document
+            var titreContainer = document.getElementById('p-titre-container');
+            var titreSpan = document.getElementById('p-titre');
+            if (doc.titre && doc.titre.trim() !== '') {
+                titreSpan.innerText = doc.titre.trim();
+                titreContainer.style.display = 'block';
+            } else {
+                titreSpan.innerText = '';
+                titreContainer.style.display = 'none';
+            }
 
             // Emetteur
             document.getElementById('p-f-name').innerText = companySettings.nom || 'EPT, SARL';
